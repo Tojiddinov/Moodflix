@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if error_message %}Movie Not Found{% elif mood %}{{ mood }} Movies{% else %}Movie Recommendations{% endif %} - Moodflix</title>
+    <link rel="icon" href="/static/Untitled%20design%20(2).png" type="image/png">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:400,500,600,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root {
+            --primary-color: #e50914;
+            --dark-color: #141414;
+            --light-color: #f8f9fa;
+            --accent-color: #ffc107;
+            --border-radius: 8px;
+        }
+        
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #0c0c0c;
+            color: var(--light-color);
+        }
+        
+        .header-section {
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-right: 10px;
+        }
+        
+        .logo h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .home-btn {
+            background-color: transparent;
+            border: 2px solid white;
+            color: white;
+            border-radius: 30px;
+            padding: 8px 25px;
+            transition: all 0.3s;
+        }
+        
+        .home-btn:hover {
+            background-color: white;
+            color: var(--dark-color);
+            transform: translateY(-2px);
+        }
+        
+        .error-container {
+            background-color: rgba(255,255,255,0.05);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            margin-top: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .error-icon {
+            color: var(--primary-color);
+        }
+        
+        .suggestion-card {
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+            background-color: #1a1a1a;
+            height: 100%;
+        }
+        
+        .suggestion-card:hover {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.3);
+        }
+        
+        .suggestion-image {
+            height: 250px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        
+        .suggestion-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+            padding: 50px 15px 15px;
+        }
+        
+        .suggestion-title {
+            padding: 15px;
+            font-weight: 600;
+            font-size: 1rem;
+            color: white;
+        }
+        
+        .suggestion-genres {
+            padding: 0 15px 15px;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .mood-section {
+            position: relative;
+            padding: 80px 0;
+            background-size: cover;
+            background-position: center;
+            margin-bottom: 40px;
+        }
+        
+        .mood-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(12,12,12,1) 100%);
+            z-index: 1;
+        }
+        
+        .mood-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+        
+        .mood-emoji {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        
+        .mood-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, #fff, #e50914);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .mood-description {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 30px;
+            opacity: 0.8;
+        }
+        
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .movie-card {
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            height: 100%;
+            background-color: #1a1a1a;
+        }
+        
+        .movie-card:hover {
+            transform: translateY(-7px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        
+        .movie-poster {
+            width: 100%;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+        }
+        
+        .movie-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+            padding: 50px 15px 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .movie-title {
+            color: white;
+            font-weight: 600;
+            margin: 0;
+            font-size: 0.95rem;
+        }
+        
+        .movie-info {
+            padding: 15px;
+        }
+        
+        .movie-genres {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.6);
+            margin-top: 5px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 15px;
+            display: inline-block;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background-color: var(--primary-color);
+        }
+        
+        .fade-in {
+            animation: fadeIn 1s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        footer {
+            background-color: rgba(0,0,0,0.3);
+            padding: 30px 0;
+            margin-top: 60px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+    </style>
+</head>
+<body>
+
+<header class="header-section">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div class="logo">
+            <i class="fas fa-film"></i>
+            <h1>Moodflix</h1>
+        </div>
+        <nav>
+            <a href="/" class="btn home-btn"><i class="fas fa-home mr-2"></i>Home</a>
+        </nav>
+    </div>
+</header>
+
+{% if error_message %}
+<div class="container mt-5">
+    <div class="error-container fade-in">
+        <div class="text-center mb-4">
+            <i class="fas fa-exclamation-circle error-icon fa-3x mb-3"></i>
+            <h3 class="text-light">{{ error_message }}</h3>
+            <p class="lead mt-3">You searched for: <strong>"{{ title }}"</strong></p>
+        </div>
+
+        <div class="mt-5">
+            <h4 class="text-center mb-4"><i class="fas fa-lightbulb text-warning mr-2"></i>Why not try one of these popular movies instead?</h4>
+            <div class="row mt-3">
+                {% for suggestion in suggestions[:8] %}
+                <div class="col-md-3 mb-4">
+                    <div class="suggestion-card" onclick="window.location.href='{{ url_for('movie_details', title=suggestion) }}'">
+                        <div class="suggestion-image" style="background-image: url('https://image.tmdb.org/t/p/w500/{{ suggestion | lower | replace(' ', '') }}.jpg'), url('https://placehold.co/500x750/1a1a1a/FFFFFF?text={{ suggestion }}')">
+                            <div class="suggestion-overlay"></div>
+                        </div>
+                        <div class="suggestion-title">{{ suggestion }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="text-center mt-5">
+                <a href="/" class="btn home-btn btn-lg"><i class="fas fa-arrow-left mr-2"></i>Back to Home</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% elif mood and mood_movies %}
+<!-- Mood-based recommendations -->
+<section class="mood-section fade-in" style="background-image: url('https://images.unsplash.com/photo-1535016120720-40c646be5580?q=80&w=1740')">
+    <div class="mood-overlay"></div>
+    <div class="container mood-content">
+        {% set mood_emojis = {
+            'Date Night Vibe ❤️': '❤️',
+            'Joy 🌟': '🌟',
+            'Wonder ✨': '✨',
+            'Melancholy 🌧️': '🌧️',
+            'Spontaneous 🎉': '🎉',
+            'Adventurous 🏞️': '🏞️',
+            'Excited 🔥': '🔥',
+            'Romantic 💕': '💕',
+            'Inspired 💡': '💡',
+            'Relaxed 🛀': '🛀',
+            'Quirky 🤪': '🤪',
+            'Triumphant 🏆': '🏆',
+            'Energetic ⚡': '⚡',
+            'Serene 🌿': '🌿',
+            'Mystical 🔮': '🔮',
+            'Playful 🎭': '🎭',
+            'Grateful 🙏': '🙏',
+            'Motivated 🚀': '🚀',
+            'Brave 🦁': '🦁',
+            'Chilled ❄️': '❄️',
+            'Empowered 💪': '💪',
+            'Curious 🕵️': '🕵️',
+            'Cheerful 😄': '😄',
+            'Silly 🤡': '🤡',
+            'Confident 😎': '😎',
+            'Focused 🎯': '🎯',
+            'Free 🕊️': '🕊️',
+            'Peaceful ☮️': '☮️',
+            'Exciting 🎢': '🎢'
+        } %}
+        
+        {% set mood_emoji = mood_emojis.get(mood, mood.split(' ')[-1] if ' ' in mood else '🎬') %}
+        <span class="mood-emoji">{{ mood_emoji }}</span>
+        <h1 class="mood-title">{{ mood }}</h1>
+        <p class="mood-description">
+            {% if 'Joy' in mood %}
+            Uplifting and heartwarming movies to make you smile and laugh.
+            {% elif 'Adventure' in mood %}
+            Thrilling journeys and exciting explorations to feed your sense of discovery.
+            {% elif 'Romantic' in mood or 'Date' in mood %}
+            Passionate stories and tender moments to warm your heart.
+            {% elif 'Melancholy' in mood %}
+            Thoughtful and reflective films that acknowledge life's deeper emotions.
+            {% elif 'Excited' in mood or 'Exciting' in mood %}
+            Action-packed and thrilling movies that will keep you on the edge of your seat.
+            {% elif 'Relaxed' in mood or 'Peaceful' in mood or 'Chilled' in mood %}
+            Calming and soothing films to help you unwind and find peace.
+            {% elif 'Inspired' in mood or 'Motivated' in mood %}
+            Stories of triumph and success that will inspire and motivate you.
+            {% elif 'Quirky' in mood or 'Silly' in mood %}
+            Unique and eccentric films that celebrate the unusual and make you laugh.
+            {% else %}
+            Here are some great movies that match your current mood.
+            {% endif %}
+        </p>
+    </div>
+</section>
+
+<div class="container">
+    <div class="text-center mb-5">
+        <h2 class="section-title">Movies for your {{ mood }} mood</h2>
+    </div>
+    
+    <div class="movie-grid fade-in">
+        {% for movie in mood_movies %}
+        <div class="movie-card" onclick="window.location.href='{{ url_for('movie_details', title=movie.title) }}'">
+            <img src="{{ movie.poster }}" alt="{{ movie.title }}" class="movie-poster">
+            <div class="movie-info">
+                <h3 class="movie-title">{{ movie.title }}</h3>
+                <div class="movie-genres">{{ movie.genres }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="text-center mt-5">
+        <p class="mb-3">Want to explore a different mood?</p>
+        <a href="/" class="btn home-btn btn-lg"><i class="fas fa-arrow-left mr-2"></i>Back to Home</a>
+    </div>
+</div>
+
+{% else %}
+<div class="container mt-5">
+    <div class="text-center py-5 fade-in">
+        <div style="background-color: rgba(255,255,255,0.05); border-radius: var(--border-radius); padding: 40px; backdrop-filter: blur(10px);">
+            <i class="fas fa-film text-primary fa-3x mb-3"></i>
+            <h2>Movie Recommendations</h2>
+            <p class="lead">Select a mood from the home page to get personalized movie recommendations.</p>
+            <div class="mt-4">
+                <a href="/" class="btn home-btn btn-lg"><i class="fas fa-home mr-2"></i>Return Home</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<footer>
+    <div class="container text-center">
+        <div class="mb-3">
+            <i class="fas fa-film text-danger mr-2"></i>
+            <span class="font-weight-bold">Moodflix</span>
+        </div>
+        <p class="mb-0 text-muted small">Finding the perfect movie for every mood</p>
+    </div>
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+</body>
+</html>

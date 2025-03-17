@@ -1,0 +1,1935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moodflix - Movie Recommendations Based on Your Mood</title>
+    <link rel="icon" href="/static/Untitled%20design%20(2).png" type="image/png">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:400,500,600,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+
+    <!-- Auto Complete -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@7.2.0/dist/css/autoComplete.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root {
+            --primary-color: #e50914;
+            --dark-color: #141414;
+            --light-color: #f8f9fa;
+            --accent-color: #ffc107;
+            --border-radius: 8px;
+        }
+        
+        body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background-color: #0c0c0c;
+            color: var(--light-color);
+            overflow-x: hidden;
+        }
+        
+        /* Header styles */
+        header {
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo img {
+            height: 40px;
+            margin-right: 10px;
+        }
+        
+        .logo h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(90deg, var(--primary-color), #ff8a00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+        }
+        
+        .auth-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .auth-buttons a {
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .auth-buttons a:first-child {
+            background-color: rgba(255,255,255,0.1);
+            color: var(--light-color);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .auth-buttons a:first-child:hover {
+            background-color: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .auth-buttons a:last-child {
+            background-color: var(--primary-color);
+            color: var(--light-color);
+            border: 1px solid var(--primary-color);
+        }
+        
+        .auth-buttons a:last-child:hover {
+            background-color: #c30813;
+            transform: translateY(-2px);
+        }
+        
+        /* Hero section */
+        .hero-section {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 0;
+            overflow: hidden;
+        }
+        
+        .hero-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1616530940355-351fabd9524b?q=80&w=1935&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.2);
+            z-index: -1;
+        }
+        
+        .hero-backdrop::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(229, 9, 20, 0.2), transparent 70%);
+        }
+        
+        .mood-container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            text-align: center;
+        }
+        
+        .mood-container h1 {
+            font-size: 4.5rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+            background: linear-gradient(90deg, #fff, var(--primary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            display: inline-block;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: pulse 2s infinite ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0% {
+                opacity: 0.9;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.03);
+            }
+            100% {
+                opacity: 0.9;
+                transform: scale(1);
+            }
+        }
+        
+        .mood-container h1::before {
+            content: '"';
+            position: absolute;
+            left: -20px;
+            top: -30px;
+            font-size: 5rem;
+            opacity: 0.3;
+            color: var(--primary-color);
+        }
+        
+        .mood-container h1::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-color), transparent);
+        }
+        
+        /* Search styles */
+        .search-box {
+            position: relative;
+            max-width: 650px;
+            margin: 40px auto 50px;
+            transform: scale(0.98);
+            transition: transform 0.3s ease;
+        }
+        
+        .search-box:hover {
+            transform: scale(1);
+        }
+        
+        #autoComplete {
+            border-radius: 50px;
+            padding: 18px 30px;
+            font-size: 1.2rem;
+            border: none;
+            background-color: rgba(20, 20, 20, 0.85);
+            color: var(--light-color);
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3), 0 0 0 2px rgba(229, 9, 20, 0.05);
+            backdrop-filter: blur(5px);
+        }
+        
+        #autoComplete:focus {
+            background-color: rgba(30, 30, 30, 0.9);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4), 0 0 0 3px rgba(229, 9, 20, 0.2);
+            outline: none;
+        }
+        
+        #autoComplete::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+        
+        .movie-button {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            background: linear-gradient(90deg, var(--primary-color), #ff4b2b);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 13px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .movie-button:hover {
+            background: linear-gradient(90deg, #ff4b2b, var(--primary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(229, 9, 20, 0.3);
+        }
+        
+        .movie-button i {
+            font-size: 1.1rem;
+            color: white;
+            margin-left: 5px;
+            display: inline-block;
+            text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+        }
+        
+        .movie-button:disabled {
+            background: linear-gradient(90deg, #6c757d, #495057);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.7;
+        }
+        
+        /* Mood buttons */
+        .moods {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 40px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            perspective: 800px;
+        }
+        
+        .mood-button {
+            background-color: rgba(30, 30, 30, 0.85);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 22px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+        }
+        
+        .mood-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%);
+            transition: 0.5s;
+            z-index: 1;
+        }
+        
+        .mood-button:hover::before {
+            transform: translateX(100%);
+        }
+        
+        .mood-button:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-5px) rotateX(10deg);
+            box-shadow: 0 15px 25px rgba(0,0,0,0.3), 0 0 15px rgba(229, 9, 20, 0.3);
+            letter-spacing: 0.5px;
+        }
+        
+        /* Trending section */
+        .trending-section {
+            background-color: rgba(0,0,0,0.5);
+            padding: 80px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .trending-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(to bottom, #0c0c0c, transparent);
+            z-index: 1;
+        }
+        
+        .trending-section::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            background: linear-gradient(to top, #0c0c0c, transparent);
+            z-index: 1;
+        }
+        
+        .trending-section .container {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .trending-section h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 50px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .trending-section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background-color: var(--primary-color);
+        }
+        
+        .trending-slider {
+            display: flex;
+            overflow-x: auto;
+            gap: 20px;
+            padding: 20px 5px 30px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255,255,255,0.3) transparent;
+            mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+        }
+        
+        .trending-slider::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .trending-slider::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .trending-slider::-webkit-scrollbar-thumb {
+            background-color: rgba(255,255,255,0.3);
+            border-radius: 20px;
+        }
+        
+        .movie-card {
+            min-width: 220px;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: center bottom;
+            position: relative;
+        }
+        
+        .movie-card:hover {
+            transform: scale(1.08);
+            z-index: 2;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4), 0 0 20px rgba(229, 9, 20, 0.3);
+        }
+        
+        .movie-card img {
+            width: 100%;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+            display: block;
+            transition: all 0.5s ease;
+        }
+        
+        .movie-card:hover img {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+        
+        .movie-card .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 100%);
+            padding: 80px 15px 15px;
+            color: white;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s ease;
+            transform: translateY(20px);
+        }
+        
+        .movie-card:hover .overlay {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .movie-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(229, 9, 20, 0) 0%, rgba(229, 9, 20, 0.1) 100%);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .movie-card:hover::after {
+            opacity: 1;
+        }
+        
+        /* Features section */
+        .features-section {
+            padding: 80px 0;
+            background-color: rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .features-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1478720568477-152d9b164e26?q=80&w=1770&auto=format&fit=crop') center/cover no-repeat;
+            opacity: 0.1;
+            z-index: 0;
+        }
+        
+        .features-section .container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .features-section h2 {
+            text-align: center;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 50px;
+            position: relative;
+        }
+        
+        .features-section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background-color: var(--primary-color);
+        }
+        
+        .features-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .feature-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
+            border-radius: var(--border-radius);
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            transform: translateX(-100%);
+            transition: 0.6s;
+        }
+        
+        .feature-card:hover::before {
+            transform: translateX(100%);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            background: rgba(229, 9, 20, 0.1);
+            width: 80px;
+            height: 80px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(229, 9, 20, 0.4);
+        }
+        
+        .feature-card h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--accent-color);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover h3 {
+            color: var(--primary-color);
+        }
+        
+        .feature-card p {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        
+        /* About section */
+        .about-section {
+            background-color: #0c0c0c;
+            position: relative;
+        }
+        
+        .about-moodflix {
+            padding: 100px 0;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 60px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 20px;
+            position: relative;
+            z-index: 1;
+            background-color: rgba(12, 12, 12, 0.95);
+        }
+        
+        .about-bg-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+        
+        .floating-circle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+            background: linear-gradient(135deg, var(--primary-color), #ff8a00);
+            filter: blur(40px);
+        }
+        
+        .circle-1 {
+            width: 300px;
+            height: 300px;
+            top: -100px;
+            left: -150px;
+            animation: float 15s ease-in-out infinite alternate;
+        }
+        
+        .circle-2 {
+            width: 200px;
+            height: 200px;
+            bottom: 100px;
+            right: -100px;
+            animation: float 12s ease-in-out infinite alternate;
+        }
+        
+        .circle-3 {
+            width: 150px;
+            height: 150px;
+            top: 40%;
+            left: 30%;
+            animation: float 10s ease-in-out infinite alternate;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translate(0, 0);
+            }
+            100% {
+                transform: translate(30px, -30px);
+            }
+        }
+        
+        .logo-container {
+            flex: 0 0 300px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .logo-container::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(229, 9, 20, 0.1) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            z-index: -1;
+        }
+        
+        .logo-container img {
+            max-width: 100%;
+            border-radius: 50%;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            border: 3px solid rgba(255,255,255,0.1);
+            transition: all 0.5s ease;
+        }
+        
+        .logo-container:hover img {
+            transform: rotate(5deg) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 30px rgba(229, 9, 20, 0.3);
+            border-color: rgba(229, 9, 20, 0.3);
+        }
+        
+        .logo-badges {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .badge-item {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+            padding: 8px 15px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--light-color);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .badge-item:hover {
+            background: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(229, 9, 20, 0.3);
+        }
+        
+        .badge-item i {
+            margin-right: 5px;
+            color: var(--accent-color);
+        }
+        
+        .content-container {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .content-container h2 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            position: relative;
+            padding-bottom: 15px;
+            display: inline-block;
+            background: linear-gradient(90deg, #fff, var(--primary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .content-container h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background-color: var(--primary-color);
+        }
+        
+        .content-container p {
+            color: rgba(255,255,255,0.8);
+            font-size: 1.1rem;
+            line-height: 1.8;
+            position: relative;
+            padding-left: 20px;
+            border-left: 2px solid rgba(229, 9, 20, 0.3);
+            margin-bottom: 30px;
+        }
+        
+        .about-stats {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 25px 0;
+        }
+        
+        .stat-item {
+            text-align: center;
+            position: relative;
+        }
+        
+        .stat-number {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            line-height: 1.2;
+            position: relative;
+            display: inline-block;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .stat-number::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background-color: var(--accent-color);
+            border-radius: 2px;
+        }
+        
+        .stat-label {
+            color: rgba(255,255,255,0.9);
+            font-size: 0.9rem;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+        
+        .about-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .mini-feature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+        
+        .mini-feature:hover {
+            background: rgba(229, 9, 20, 0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .mini-feature i {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+        
+        .mini-feature span {
+            font-size: 0.95rem;
+            color: var(--light-color);
+        }
+        
+        /* Feedback section */
+        .feedback-section {
+            background-color: #0c0c0c;
+            padding: 100px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feedback-bg-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        
+        .floating-shape {
+            position: absolute;
+            opacity: 0.05;
+            filter: blur(30px);
+        }
+        
+        .shape-1 {
+            top: -100px;
+            right: -100px;
+            width: 500px;
+            height: 500px;
+            background: linear-gradient(135deg, var(--primary-color), #ff8a00);
+            border-radius: 38% 62% 70% 30% / 30% 30% 70% 70%;
+            animation: shapeMove 20s infinite alternate;
+        }
+        
+        .shape-2 {
+            bottom: -100px;
+            left: -100px;
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, var(--accent-color), #ff7e5f);
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            animation: shapeMove 15s infinite alternate-reverse;
+        }
+        
+        @keyframes shapeMove {
+            0% {
+                transform: translate(0, 0) rotate(0deg);
+                border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            }
+            50% {
+                border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%;
+            }
+            100% {
+                transform: translate(30px, 30px) rotate(10deg);
+                border-radius: 38% 62% 62% 38% / 62% 38% 62% 38%;
+            }
+        }
+        
+        .feedback-section .container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .feedback-section h2 {
+            text-align: center;
+            font-size: 2.6rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            position: relative;
+            background: linear-gradient(90deg, #fff, var(--primary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        
+        .feedback-section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), #ff4b2b);
+            border-radius: 2px;
+        }
+        
+        .feedback-subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            margin-top: 30px;
+            font-weight: 400;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .feedback-form {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .feedback-form-container {
+            background: rgba(20, 20, 20, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.07);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--accent-color);
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+        
+        .textarea-icon {
+            top: 25px;
+        }
+        
+        .input-group:focus-within .input-icon {
+            color: var(--primary-color);
+        }
+        
+        .feedback-form input,
+        .feedback-form textarea {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border-radius: var(--border-radius);
+            border: 1px solid rgba(255,255,255,0.15);
+            background-color: rgba(0,0,0,0.3);
+            color: var(--light-color);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .feedback-form input:focus,
+        .feedback-form textarea:focus {
+            outline: none;
+            background-color: rgba(0,0,0,0.4);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 12px rgba(229, 9, 20, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .feedback-form input::placeholder,
+        .feedback-form textarea::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .rating-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 5px 0 15px;
+        }
+        
+        .rating-label {
+            color: rgba(255,255,255,0.9);
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        
+        .star-rating {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            padding: 10px 0;
+        }
+        
+        .star-rating i {
+            color: var(--accent-color);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .star-rating i:hover,
+        .star-rating i.active {
+            color: var(--accent-color);
+            filter: brightness(1.2);
+            transform: scale(1.1);
+        }
+        
+        .submit-button {
+            padding: 15px;
+            border-radius: var(--border-radius);
+            border: none;
+            background: linear-gradient(90deg, var(--primary-color), #ff4b2b);
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        
+        .submit-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: all 0.5s ease;
+        }
+        
+        .submit-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(229, 9, 20, 0.3);
+        }
+        
+        .submit-button:hover::before {
+            left: 100%;
+        }
+        
+        .submit-button i {
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .submit-button:hover i {
+            transform: translateX(5px);
+        }
+        
+        @media (max-width: 992px) {
+            .about-stats {
+                flex-direction: column;
+                gap: 20px;
+                align-items: center;
+            }
+            
+            .stat-item {
+                width: 100%;
+            }
+            
+            .feedback-form-container {
+                padding: 30px 20px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .about-features {
+                justify-content: center;
+            }
+            
+            .feedback-section h2 {
+                font-size: 2rem;
+            }
+            
+            .feedback-subtitle {
+                font-size: 1rem;
+            }
+        }
+
+        .ellipsis {
+            display: inline-block;
+            animation: blink 1.5s infinite;
+            color: var(--primary-color);
+            margin-left: 5px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .mood-animate {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .mood-animate.active {
+            animation: fadeInUp 0.6s forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Add responsive CSS for all sections */
+        /* Media Queries */
+        @media (max-width: 1200px) {
+            .mood-container h1 {
+                font-size: 3.8rem;
+            }
+            
+            .trending-slider {
+                gap: 15px;
+            }
+            
+            .movie-card {
+                min-width: 200px;
+            }
+            
+            .feature-card {
+                padding: 30px 20px;
+            }
+            
+            .feature-icon {
+                width: 70px;
+                height: 70px;
+                font-size: 2.2rem;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .mood-container h1 {
+                font-size: 3.2rem;
+            }
+            
+            .mood-container h1::before {
+                font-size: 4rem;
+                left: -15px;
+                top: -20px;
+            }
+            
+            .search-box {
+                max-width: 500px;
+            }
+            
+            #autoComplete {
+                padding: 15px 25px;
+                font-size: 1.1rem;
+            }
+            
+            .movie-button {
+                padding: 10px 25px;
+            }
+            
+            .moods {
+                gap: 10px;
+            }
+            
+            .mood-button {
+                padding: 10px 18px;
+                font-size: 0.95rem;
+            }
+            
+            .trending-section h2,
+            .features-section h2 {
+                font-size: 2.2rem;
+            }
+            
+            .movie-card {
+                min-width: 180px;
+            }
+            
+            .features-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .about-moodflix {
+                gap: 40px;
+                padding: 70px 20px;
+            }
+            
+            .about-stats {
+                flex-direction: column;
+                gap: 20px;
+                align-items: center;
+            }
+            
+            .stat-item {
+                width: 100%;
+            }
+            
+            .feedback-form-container {
+                padding: 30px 20px;
+            }
+            
+            .logo-container {
+                flex: 0 0 250px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 12px 0;
+            }
+            
+            .logo img {
+                height: 35px;
+            }
+            
+            .logo h1 {
+                font-size: 1.4rem;
+            }
+            
+            .auth-buttons a {
+                padding: 6px 15px;
+                font-size: 0.85rem;
+            }
+            
+            .mood-container h1 {
+                font-size: 2.6rem;
+                margin-bottom: 30px;
+            }
+            
+            .mood-container h1::before {
+                font-size: 3rem;
+                left: -10px;
+                top: -15px;
+            }
+            
+            .mood-container h1::after {
+                width: 70px;
+            }
+            
+            .search-box {
+                max-width: 100%;
+                margin: 30px auto 40px;
+            }
+            
+            #autoComplete {
+                padding: 14px 20px;
+                font-size: 1rem;
+            }
+            
+            .movie-button {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+            
+            .movie-button i {
+                font-size: 1rem;
+            }
+            
+            .mood-button {
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+            
+            .trending-section,
+            .features-section,
+            .feedback-section {
+                padding: 60px 0;
+            }
+            
+            .trending-section h2,
+            .features-section h2 {
+                font-size: 2rem;
+                margin-bottom: 40px;
+            }
+            
+            .movie-card {
+                min-width: 160px;
+            }
+            
+            .features-container {
+                gap: 20px;
+            }
+            
+            .feature-card h3 {
+                font-size: 1.2rem;
+            }
+            
+            .about-moodflix {
+                flex-direction: column;
+                text-align: center;
+                padding: 60px 20px;
+            }
+            
+            .content-container h2 {
+                font-size: 2rem;
+            }
+            
+            .content-container h2::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            
+            .content-container p {
+                font-size: 1rem;
+                padding-left: 0;
+                border-left: none;
+                padding: 0 10px;
+            }
+            
+            .about-features {
+                justify-content: center;
+            }
+            
+            .feedback-section h2 {
+                font-size: 2rem;
+            }
+            
+            .feedback-subtitle {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .container {
+                padding-left: 15px;
+                padding-right: 15px;
+            }
+            
+            .auth-buttons {
+                gap: 8px;
+            }
+            
+            .auth-buttons a {
+                padding: 5px 12px;
+                font-size: 0.8rem;
+            }
+            
+            .hero-section {
+                padding: 40px 0;
+            }
+            
+            .mood-container h1 {
+                font-size: 2rem;
+                margin-bottom: 25px;
+            }
+            
+            .mood-container h1::before {
+                font-size: 2.5rem;
+                left: -8px;
+                top: -10px;
+            }
+            
+            /* Better search and button handling */
+            .search-box {
+                margin: 20px 15px 30px;
+            }
+            
+            #autoComplete {
+                padding: 12px 15px 12px 40px;
+                font-size: 0.9rem;
+                border-radius: 30px;
+            }
+            
+            .movie-button {
+                padding: 8px 15px;
+                font-size: 0.85rem;
+                right: 5px;
+                top: 50%;
+                transform: translateY(-50%);
+                min-width: 75px;
+            }
+            
+            .movie-button i {
+                margin-left: 3px;
+            }
+            
+            /* More compact mood buttons grid for mobile */
+            .moods {
+                gap: 6px;
+                padding: 0 5px;
+            }
+            
+            .mood-button {
+                padding: 7px 12px;
+                font-size: 0.85rem;
+                min-height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                line-height: 1.2;
+            }
+            
+            .trending-section,
+            .features-section,
+            .feedback-section {
+                padding: 50px 0;
+            }
+            
+            .trending-section h2,
+            .features-section h2 {
+                font-size: 1.8rem;
+                margin-bottom: 30px;
+            }
+            
+            .movie-card {
+                min-width: 140px;
+            }
+            
+            .features-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .feature-card {
+                padding: 25px 15px;
+            }
+            
+            .feature-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.8rem;
+                margin-bottom: 15px;
+            }
+            
+            .about-moodflix {
+                padding: 50px 15px;
+            }
+            
+            .logo-container {
+                flex: 0 0 200px;
+            }
+            
+            .logo-badges {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .content-container h2 {
+                font-size: 1.8rem;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+            }
+            
+            .feedback-form-container {
+                padding: 25px 15px;
+            }
+            
+            .input-group {
+                margin-bottom: 3px;
+            }
+            
+            .feedback-form input,
+            .feedback-form textarea {
+                padding: 12px 12px 12px 40px;
+                font-size: 0.9rem;
+            }
+            
+            .input-icon {
+                left: 12px;
+                font-size: 1rem;
+            }
+            
+            .rating-container {
+                margin: 0 0 10px;
+            }
+            
+            .star-rating i {
+                font-size: 1.3rem;
+            }
+            
+            .submit-button {
+                padding: 12px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Ultra small screens optimization */
+        @media (max-width: 400px) {
+            .mood-container h1 {
+                font-size: 1.7rem;
+                margin-bottom: 20px;
+            }
+            
+            .mood-button {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+                min-height: 36px;
+            }
+            
+            .movie-card {
+                min-width: 120px;
+            }
+            
+            /* Stack input fields in feedback form */
+            .feedback-form-container {
+                padding: 20px 15px;
+            }
+            
+            .input-group, .rating-container {
+                margin-bottom: 10px;
+            }
+            
+            .input-icon {
+                left: 10px;
+            }
+            
+            .feedback-form input {
+                padding: 10px 10px 10px 35px;
+            }
+            
+            .star-rating {
+                gap: 8px;
+            }
+            
+            .star-rating i {
+                font-size: 1.2rem;
+            }
+            
+            /* Make sure the submit button is easy to tap */
+            .submit-button {
+                padding: 12px;
+                min-height: 44px;
+            }
+        }
+
+        /* Extra small height optimization */
+        @media (max-height: 650px) {
+            .hero-section {
+                min-height: auto;
+                padding: 30px 0;
+            }
+            
+            .mood-container h1 {
+                margin-bottom: 15px;
+            }
+            
+            .search-box {
+                margin: 15px auto 25px;
+            }
+            
+            .moods {
+                margin-top: 20px;
+            }
+        }
+
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            /* Enlarge touch targets for mobile */
+            .mood-button,
+            .auth-buttons a,
+            .movie-button,
+            .submit-button {
+                min-height: 44px; /* Apple's recommended minimum */
+            }
+            
+            .star-rating i {
+                padding: 5px;
+            }
+            
+            /* Improve scrolling performance */
+            .trending-slider {
+                -webkit-overflow-scrolling: touch;
+                scroll-behavior: smooth;
+            }
+        }
+    </style>
+    <script>
+        const suggestions = {{ suggestions | tojson }};
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="logo">
+                <img src="/static/Untitled%20design%20(2).png" alt="Moodflix Logo">
+                <h1>MOODFLIX</h1>
+            </div>
+            <div class="auth-buttons">
+                <a href="#">Unlock Features</a>
+                <a href="#login.html">Login</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-backdrop"></div>
+        <div class="mood-container fade-in">
+            <h1>I want to feel<span class="ellipsis">...</span></h1>
+            <form id="movie-search-form" action="/search_movie" method="POST" onsubmit="console.log('Form submitted');">
+                <div class="search-box">
+                    <input type="text" name="title" class="form-control movie" id="autoComplete" autocomplete="off" placeholder="Enter the Movie Name" value="{{ search_query }}" required>
+                    <button type="submit" class="movie-button" {% if not search_query %}disabled{% endif %}>
+                        Search <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+            <div id="loader" style="display:none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+            <div class="fail" style="display:none;">
+                <h3>Sorry! The movie you requested is not in our database.</h3>
+                <h3>Please check the spelling or try with another movie.</h3>
+            </div>
+            <div class="results" style="display:none;"></div>
+            <div class="moods">
+                {% for mood in ["Date Night Vibe ❤️", "Joy 🌟", "Wonder ✨", "Melancholy 🌧️", "Spontaneous 🎉", "Adventurous 🏞️", "Excited 🔥", "Romantic 💕", "Inspired 💡", "Relaxed 🛀", "Quirky 🤪", "Triumphant 🏆", "Energetic ⚡", "Serene 🌿", "Mystical 🔮", "Playful 🎭", "Grateful 🙏", "Motivated 🚀", "Brave 🦁", "Chilled ❄️", "Empowered 💪", "Curious 🕵️", "Cheerful 😄", "Silly 🤡", "Confident 😎", "Focused 🎯", "Free 🕊️", "Peaceful ☮️", "Exciting 🎢"] %}
+                    <button class="mood-button mood-animate" data-delay="{{ loop.index * 50 }}">{{ mood }}</button>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Trending Section -->
+    <section class="trending-section">
+        <div class="container">
+            <h2>Trending Now</h2>
+            <div class="trending-slider">
+                {% for movie in trending_movies %}
+                    <div class="movie-card">
+                        <a href="{{ url_for('movie_details', title=movie['title']) }}">
+                            <img src="{{ movie['poster'] }}" alt="{{ movie['title'] }}">
+                            <div class="overlay">{{ movie['title'] }}</div>
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <h2>More Reasons to Join</h2>
+            <div class="features-container">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-tv"></i>
+                    </div>
+                    <h3>Watch on Your TV</h3>
+                    <p>Enjoy movies on Smart TVs, PlayStation, Chromecast, and more.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <h3>Download to Watch Offline</h3>
+                    <p>Save your favorites and enjoy offline anytime.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Watch Everywhere</h3>
+                    <p>Stream movies on your phone, tablet, or laptop anytime.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h3>Choose by Mood</h3>
+                    <p>Find the perfect movie for how you feel, manually or visually.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <h3>Define your mood</h3>
+                    <p>Find the perfect movie for how you feel visually.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Moodflix -->
+    <section id="about" class="about-section">
+        <div class="about-moodflix">
+            <div class="about-bg-elements">
+                <div class="floating-circle circle-1"></div>
+                <div class="floating-circle circle-2"></div>
+                <div class="floating-circle circle-3"></div>
+            </div>
+            <div class="logo-container">
+                <img src="./static/Untitled%20design%20(2).png" alt="Moodflix Logo">
+                <div class="logo-badges">
+                    <span class="badge-item"><i class="fas fa-film"></i> Movies</span>
+                    <span class="badge-item"><i class="fas fa-heart"></i> Moods</span>
+                </div>
+            </div>
+            <div class="content-container">
+                <h2>About Moodflix</h2>
+                <p>Welcome to Moodflix, your personal movie recommendation system based on your mood. Using advanced sentiment analysis and machine learning algorithms, we provide tailored movie suggestions that match how you're feeling right now.</p>
+                
+                <div class="about-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">10K+</div>
+                        <div class="stat-label">Movies</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">8+</div>
+                        <div class="stat-label">Moods</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">99%</div>
+                        <div class="stat-label">Accuracy</div>
+                    </div>
+                </div>
+                
+                <div class="about-features">
+                    <div class="mini-feature">
+                        <i class="fas fa-magic"></i>
+                        <span>AI Powered</span>
+                    </div>
+                    <div class="mini-feature">
+                        <i class="fas fa-bolt"></i>
+                        <span>Fast Results</span>
+                    </div>
+                    <div class="mini-feature">
+                        <i class="fas fa-lock"></i>
+                        <span>Secure</span>
+                    </div>
+                    <div class="mini-feature">
+                        <i class="fas fa-sync"></i>
+                        <span>Weekly Updates</span>
+                    </div>
+                    <div class="mini-feature">
+                        <i class="fas fa-globe"></i>
+                        <span>Global Data</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feedback Section -->
+    <section id="feedback" class="feedback-section">
+        <div class="feedback-bg-elements">
+            <div class="floating-shape shape-1"></div>
+            <div class="floating-shape shape-2"></div>
+        </div>
+        <div class="container">
+            <h2>Send Feedback</h2>
+            <p class="feedback-subtitle">We'd love to hear your thoughts about Moodflix!</p>
+            
+            <div class="feedback-form">
+                <div class="feedback-form-container">
+                    <div class="input-group">
+                        <i class="fas fa-user input-icon"></i>
+                        <input type="text" name="name" placeholder="Your Name" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <i class="fas fa-envelope input-icon"></i>
+                        <input type="email" name="email" placeholder="Your Email" required>
+                    </div>
+                    
+                    <div class="rating-container">
+                        <div class="rating-label">How would you rate your experience?</div>
+                        <div class="star-rating">
+                            <i class="fas fa-star" data-rating="1"></i>
+                            <i class="fas fa-star" data-rating="2"></i>
+                            <i class="fas fa-star" data-rating="3"></i>
+                            <i class="fas fa-star" data-rating="4"></i>
+                            <i class="fas fa-star" data-rating="5"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <i class="fas fa-comment input-icon textarea-icon"></i>
+                        <textarea name="message" rows="5" placeholder="Your Feedback" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="submit-button">
+                        Send Feedback
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        Made with <span>&hearts;</span> by Moodflix
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@7.2.0/dist/js/autoComplete.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='recommend.js') }}"></script>
+    <script>
+        // Auto-search if search query is provided
+        $(document).ready(function() {
+            console.log("Document ready");
+            
+            {% if search_query %}
+            console.log("Search query found: {{ search_query }}");
+            // Give the page a moment to load before triggering the search
+            setTimeout(function() {
+                console.log("Submitting form with auto-search");
+                $('#movie-search-form').submit();
+            }, 500);
+            {% endif %}
+
+            // Enable/disable search button based on input
+            $('#autoComplete').on('input', function() {
+                if($(this).val().trim() === "") {
+                    $('.movie-button').attr('disabled', true);
+                } else {
+                    $('.movie-button').attr('disabled', false);
+                }
+            });
+            
+            // Ensure form submission works
+            $('#movie-search-form').on('submit', function(e) {
+                console.log("Form submission detected");
+                const movieTitle = $('#autoComplete').val().trim();
+                if (movieTitle === "") {
+                    console.log("Empty search, preventing submission");
+                    e.preventDefault();
+                    return false;
+                }
+                console.log("Submitting search for: " + movieTitle);
+                $("#loader").show();
+                return true;
+            });
+            
+            // Handle mood button clicks
+            $('.moods .mood-button').on('click', function(e) {
+                e.preventDefault();
+                const mood = $(this).text().trim();
+                console.log("Mood selected: " + mood);
+                
+                // Show loader
+                $("#loader").show();
+                
+                // Create and submit form for mood-based recommendations
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/mood';
+                
+                const moodInput = document.createElement('input');
+                moodInput.type = 'hidden';
+                moodInput.name = 'mood';
+                moodInput.value = mood;
+                
+                form.appendChild(moodInput);
+                document.body.appendChild(form);
+                form.submit();
+            });
+        });
+
+        // Star rating functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const stars = document.querySelectorAll('.star-rating i');
+            
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const rating = this.getAttribute('data-rating');
+                    
+                    // Reset all stars
+                    stars.forEach(s => s.classList.remove('active'));
+                    
+                    // Activate stars up to selected rating
+                    stars.forEach(s => {
+                        if (s.getAttribute('data-rating') <= rating) {
+                            s.classList.add('active');
+                        }
+                    });
+                });
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate mood buttons on load
+            const moodButtons = document.querySelectorAll('.mood-animate');
+            
+            moodButtons.forEach(button => {
+                const delay = button.getAttribute('data-delay');
+                setTimeout(() => {
+                    button.classList.add('active');
+                }, delay);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movie Recommendation System</title>
+    <link rel="icon" href="/static/Untitled%20design%20(2).png" type="image/png">
+
+
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xQq1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- Auto Complete -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@7.2.0/dist/css/autoComplete.min.css">
+    <script type="text/javascript">
+      var films = {{suggestions|tojson}};
+    </script>
+
+
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Noto Sans JP', sans-serif;
+        background-color: #f9f9f9;
+        color: #333;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        cursor: pointer;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+      }
+
+      .logo img {
+        height: 80px;
+        width: auto;
+        margin-right: 10px;
+
+      }
+
+      .logo h1 {
+        font-size: 2rem;
+        margin: 0;
+        font-weight: bold;
+        color: #333;
+        cursor: pointer;
+      }
+
+      .auth-buttons a {
+        text-decoration: none;
+        color: #fff;
+        padding: 8px 16px;
+        margin-left: 10px;
+        background-color: #e50914;
+        border-radius: 20px;
+        font-weight: bold;
+      }
+      .mood-container {
+        text-align: center;
+        margin-top: 30px;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+      }
+
+      .search-box input {
+        width: 60%;
+        padding: 10px;
+        border-radius: 25px;
+        border: 1px solid #ccc;
+        outline: none;
+        text-align: center;
+      }
+
+      .mood-button {
+        background-color: #f0f0f0;
+        border: none;
+        border-radius: 25px;
+        padding: 14px 26px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin: 10px;
+        transition: transform 0.2s ease, background-color 0.2s ease;
+      }
+
+      .mood-button:hover {
+        transform: scale(1.1);
+        background-color: #e50914;
+        color: #fff;
+      }
+
+      .results, .fail {
+        margin-top: 20px;
+        text-align: center;
+      }
+
+      .footer {
+        margin-top: 50px;
+        text-align: center;
+        color: #555;
+      }
+
+      .footer span {
+        color: red;
+      }
+
+      <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movie Recommendation System</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xQq1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- Auto Complete -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@7.2.0/dist/css/autoComplete.min.css">
+
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Noto Sans JP', sans-serif;
+        background-color: #f9f9f9;
+        color: #333;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+      }
+
+      .logo img {
+        height: 80px;
+        width: auto;
+        margin-right: 10px;
+      }
+
+      .logo h1 {
+        font-size: 2rem;
+        margin: 0;
+        font-weight: bold;
+        color: #333;
+      }
+
+      .auth-buttons a {
+        text-decoration: none;
+        color: #fff;
+        padding: 8px 16px;
+        margin-left: 10px;
+        background-color: #e50914;
+        border-radius: 20px;
+        font-weight: bold;
+      }
+
+
+      .mood-container {
+        text-align: center;
+        margin: 50px auto;
+        padding: 20px;
+        height: 50vh;
+        weight: 50vw;
+      }
+
+      .mood-container h1 {
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+      }
+
+      .moods {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .mood-button {
+        background-color: #f0f0f0;
+        border: none;
+        border-radius: 25px;
+        padding: 14px 26px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease, background-color 0.2s ease;
+      }
+
+      .mood-button:hover {
+        transform: scale(1.1);
+        background-color: #e50914;
+        color: #fff;
+      }
+
+
+      .trending-section h2 {
+        font-size: 2rem;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .trending-slider {
+        display: flex;
+        overflow-x: auto;
+        justify-content:center;
+        align-items: center;
+        gap: 50px;
+        padding: 10px 0;
+        text-align: center;
+      }
+
+      .movie-card {
+        flex: 0 0 auto;
+        width: 220px;
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .movie-card a {
+        text-decoration: none;
+        color: inherit;
+      }
+
+      .movie-card img {
+        width: 100%;
+        display: block;
+        border-radius: 10px;
+      }
+
+      .movie-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+      }
+
+      .movie-card .overlay {
+        position: absolute;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        width: 100%;
+        text-align: center;
+        padding: 10px;
+        font-size: 1rem;
+        font-weight: bold;
+        border-radius: 0 0 10px 10px;
+      }
+
+      .trending-slider::-webkit-scrollbar {
+        height: 8px;
+      }
+
+      .trending-slider::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+      }
+
+      .trending-slider::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+
+
+
+
+
+      .about-moodflix {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 50px 20px;
+        background-color: #fff;
+        margin-top: 50px;
+        width: 75%;
+        margin-left: 10%;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+
+      }
+      
+
+      .about-moodflix .logo-container {
+        flex: 1;
+        text-align: center;
+      }
+
+      .about-moodflix .logo-container img {
+        height: 200px;
+        width: auto;
+      }
+
+      .about-moodflix .content-container {
+        flex: 2;
+        text-align: left;
+        padding-left: 20px;
+      }
+
+      .about-moodflix h2 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        color: #333;
+      }
+
+      .about-moodflix p {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: #555;
+      }
+
+      .team-section {
+        margin: 50px auto;
+        text-align: center;
+      }
+
+      .team-section h2 {
+        font-size: 2rem;
+        margin-bottom: 20px;
+      }
+
+      .team-container {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      .team-member {
+        width: 400px;
+        height: 450px;
+        text-align: center;
+        border-radius: 10px;
+        background-color: #fff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+      }
+
+      .team-member img {
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        margin-bottom: 10px;
+      }
+
+      .team-member h3 {
+        font-size: 1.2rem;
+        margin-bottom: 5px;
+      }
+
+      .team-member p {
+        color: #777;
+        font-size: 0.9rem;
+      }
+
+      .feedback-section {
+        margin: 50px auto;
+        text-align: center;
+      }
+
+      .feedback-section h2 {
+        font-size: 2rem;
+        margin-bottom: 20px;
+      }
+
+      .feedback-form input, .feedback-form textarea {
+        width: 60%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        outline: none;
+      }
+
+      .feedback-form button {
+        padding: 10px 20px;
+        background-color: #e50914;
+        border: none;
+        color: white;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.3s;
+      }
+
+      .feedback-form button:hover {
+        background-color: #c10710;
+      }
+
+
+    </style>
+  </head>
+  <body id="content">
+      </head>
+  <body id="content">
+    <header>
+      <div class="logo">
+        <img src="/static/Untitled%20design%20(2).png" alt="Moodflix Logo">
+        <h1>MOODFLIX</h1>
+      </div>
+      <div class="auth-buttons">
+        <a href="#">Unlock Features</a>
+        <a href="#">Login</a>
+      </div>
+    </header>
+
+    <!-- Mood Container -->
+    <div class="mood-container">
+      <h1>I want to feel...</h1>
+      <div class="search-box">
+        <input type="text"  name="movie" class="movie form-control" id="autoComplete" autocomplete="off" placeholder="Enter the Movie Name"  required="required" />
+      </div>
+      <div class="moods">
+        <button class="mood-button">Date Night Vibe ❤️</button>
+        <button class="mood-button">Joy 🌟</button>
+        <button class="mood-button">Wonder ✨</button>
+        <button class="mood-button">Melancholy 🌧️</button>
+        <button class="mood-button">Spontaneous 🎉</button>
+        <button class="mood-button">Adventurous 🏞️</button>
+        <button class="mood-button">Excited 🔥</button>
+        <button class="mood-button">Romantic 💕</button>
+        <button class="mood-button">Inspired 💡</button>
+        <button class="mood-button">Relaxed 🛀</button>
+        <button class="mood-button">Quirky 🤪</button>
+        <button class="mood-button">Triumphant 🏆</button>
+        <button class="mood-button">Energetic ⚡</button>
+        <button class="mood-button">Serene 🌿</button>
+        <button class="mood-button">Mystical 🔮</button>
+        <button class="mood-button">Playful 🎭</button>
+        <button class="mood-button">Grateful 🙏</button>
+        <button class="mood-button">Motivated 🚀</button>
+        <button class="mood-button">Brave 🦁</button>
+        <button class="mood-button">Chilled ❄️</button>
+        <button class="mood-button">Empowered 💪</button>
+        <button class="mood-button">Curious 🕵️</button>
+        <button class="mood-button">Cheerful 😄</button>
+        <button class="mood-button">Silly 🤡</button>
+        <button class="mood-button">Confident 😎</button>
+        <button class="mood-button">Focused 🎯</button>
+        <button class="mood-button">Free 🕊️</button>
+        <button class="mood-button">Peaceful ☮️</button>
+        <button class="mood-button">Exciting 🎢</button>
+      </div>
+    </div>
+
+    <!-- Latest Videos -->
+     <!-- Trending Section -->
+     <div class="trending-section">
+      <h2>Trending Now</h2>
+      <div class="trending-slider">
+        <div class="movie-card">
+          <a href="https://movieshdwatch.to/movie/watch-gladiator-ii-online-116161">
+            <img src="/static/glad.jpg" alt="Movie 1">
+            <div class="overlay">Recently Added</div>
+          </a>
+        </div>
+        <div class="movie-card">
+          <a href="https://movieshdwatch.to/tv/watch-dune-prophecy-online-117067">
+            <img src="/static/duns.jpg" alt="Movie 2">
+            <div class="overlay">Recently Added</div>
+          </a>
+        </div>
+        <div class="movie-card">
+          <a href="https://movieshdwatch.to/movie/watch-venom-the-last-dance-online-115885">
+            <img src="/static/vens.jpg" alt="Movie 3">
+            <div class="overlay">Recently Added</div>
+          </a>
+        </div>
+        <div class="movie-card">
+          <a href="https://movieshdwatch.to/movie/watch-saturday-night-online-114820">
+            <img src="/static/sat.webp" alt="Movie 4">
+            <div class="overlay">Recently Added</div>
+          </a>
+        </div>
+        <div class="movie-card">
+          <a href="https://movieshdwatch.to/movie/watch-joker-folie-a-deux-online-114916">
+            <img src="/static/jok.jpg" alt="Movie 5">
+            <div class="overlay">Recently Added</div>
+          </a>
+        </div>
+        <div class="movie-card">
+          <a href="https://movieshdwatch.to/movie/watch-the-substance-online-114055">
+            <img src="/static/substance.jpg" alt="Movie 5">
+            <div class="overlay">Recently Added</div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Latest Videos Section -->
+
+
+
+      <div class="about-moodflix">
+        <div class="logo-container">
+          <img src="/static/Untitled%20design.jpg" alt="Moodflix Logo">
+        </div>
+        <div class="content-container">
+          <h2>About Moodflix</h2>
+          <p>
+            Moodflix is a movie recommendation platform designed to match your mood with the perfect movie.
+            Whether you're feeling joyful, adventurous, or simply in need of a cozy night in, Moodflix curates
+            personalized movie suggestions to enhance your experience. Discover, enjoy, and explore movies that
+            resonate with your feelings.
+          </p>
+        </div>
+      </div>
+
+
+    <!-- Our Team -->
+     <!--
+    <div class="team-section">
+      <h2>Our Team</h2>
+      <div class="team-container">
+        <div class="team-member">
+          <img src="/static/UMAR.JPG" alt="Team Member 1" />
+          <h3>Jurabek Tojiddinov </h3>
+          <p>Project Lead / Full-stack web Developer </p>
+        </div>
+        <div class="team-member">
+          <img src="/static/suxa.jpg" alt="Team Member 2" />
+          <h3>Sukhrob Sotibolidyev </h3>
+          <p>Backend Dev</p>
+        </div>
+
+      </div>
+    </div>
+     -->
+
+
+
+    <!-- Feedback Section -->
+    <div class="feedback-section">
+      <h2>We'd Love Your Feedback!</h2>
+      <div class="feedback-form">
+        <input type="text" placeholder="Your Name" required />
+        <br>
+        <textarea rows="4" placeholder="Share your thoughts here..." required></textarea>
+        <br>
+        <button type="submit">Submit Feedback</button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      Made with<span> &hearts; </span>by Moodflix
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@7.2.0/dist/js/autoComplete.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/javascript" src="{{url_for('static', filename='recommend.js')}}"></script>
+  </body>
+</html>

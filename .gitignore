@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+sklearn-env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Large files
+*.dll
+*.pyd
+*.mp3
+*.wav
+*.ogg
+*.flac
+sample_audio.*
+test_audio.*
+
+# Temporary files
+*.log
+.DS_Store
+Thumbs.db
+captured_image.jpg 
