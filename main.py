@@ -3,10 +3,13 @@ import pandas as pd
 import numpy as np
 import pickle
 import requests
+import time
 from bs4 import BeautifulSoup
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import json
+# Import the voice movie recommender
+from voice_movie_recommender import VoiceMovieRecommender
 
 # Load NLP model and vectorizer for sentiment analysis
 try:
@@ -29,6 +32,8 @@ except Exception as e:
     print(f"Error loading mood dataset: {e}")
     mood_data_loaded = False
 
+# Initialize the voice recommender
+voice_recommender = VoiceMovieRecommender()
 
 def create_similarity():
     data = pd.read_csv('main_data.csv')
@@ -706,6 +711,100 @@ def mood_recommendations():
         return jsonify({
             'status': 'error',
             'message': f"An error occurred: {str(e)}"
+        })
+
+
+@app.route("/voice_recommend", methods=["POST"])
+def voice_recommend():
+    """Handle voice-based movie recommendations"""
+    try:
+        # Check if the request contains audio data
+        if 'audio_data' in request.files:
+            # Save the audio file temporarily
+            audio_file = request.files['audio_data']
+            temp_filename = f"temp_recording_{int(time.time())}.wav"
+            audio_file.save(temp_filename)
+            
+            # Transcribe the audio using Deepgram
+            transcript = voice_recommender.transcribe_audio(temp_filename)
+            
+            if not transcript:
+                return jsonify({
+                    "success": False,
+                    "error": "Failed to transcribe audio. Please try again.",
+                    "transcript": ""
+                })
+            
+            # Extract preferences from the transcript
+            voice_recommender.extract_preferences(transcript)
+            
+            # Get movie recommendations based on the extracted preferences
+            recommendations = voice_recommender.recommend_movies(limit=5)
+            
+            # Format the recommendations for display
+            formatted_recs = []
+            for movie in recommendations:
+                formatted_recs.append({
+                    "title": movie["title"],
+                    "year": movie["year"],
+                    "genres": ", ".join(movie["genres"]),
+                    "plot": movie["plot"],
+                    # Generate a placeholder image URL if we don't have actual poster URLs
+                    "poster": f"https://via.placeholder.com/300x450.png?text={movie['title'].replace(' ', '+')}"
+                })
+            
+            # Return the recommendations along with the transcript
+            return jsonify({
+                "success": True,
+                "transcript": transcript,
+                "recommendations": formatted_recs,
+                "preferences": voice_recommender.user_preferences
+            })
+        
+        # If no audio file was provided, check for a text transcript
+        elif 'transcript' in request.json:
+            transcript = request.json['transcript']
+            
+            # Extract preferences from the transcript
+            voice_recommender.extract_preferences(transcript)
+            
+            # Get movie recommendations based on the extracted preferences
+            recommendations = voice_recommender.recommend_movies(limit=5)
+            
+            # Format the recommendations for display
+            formatted_recs = []
+            for movie in recommendations:
+                formatted_recs.append({
+                    "title": movie["title"],
+                    "year": movie["year"],
+                    "genres": ", ".join(movie["genres"]),
+                    "plot": movie["plot"],
+                    # Generate a placeholder image URL if we don't have actual poster URLs
+                    "poster": f"https://via.placeholder.com/300x450.png?text={movie['title'].replace(' ', '+')}"
+                })
+            
+            # Return the recommendations along with the transcript
+            return jsonify({
+                "success": True,
+                "transcript": transcript,
+                "recommendations": formatted_recs,
+                "preferences": voice_recommender.user_preferences
+            })
+        
+        else:
+            return jsonify({
+                "success": False,
+                "error": "No audio data or transcript provided",
+                "transcript": ""
+            })
+    
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "transcript": ""
         })
 
 

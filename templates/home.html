@@ -1635,10 +1635,38 @@
             <h1>I want to feel<span class="ellipsis">...</span></h1>
             <form id="movie-search-form" action="/search_movie" method="POST" onsubmit="console.log('Form submitted');">
                 <div class="search-box">
-                    <input type="text" name="title" class="form-control movie" id="autoComplete" autocomplete="off" placeholder="Enter the Movie Name" value="{{ search_query }}" required>
-                    <button type="submit" class="movie-button" {% if not search_query %}disabled{% endif %}>
-                        Search <i class="fas fa-search"></i>
-                    </button>
+                    <div class="input-group">
+                        <input type="text" name="title" class="form-control movie" id="autoComplete" autocomplete="off" placeholder="Enter the Movie Name" value="{{ search_query }}" required>
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-primary" id="search-button">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="invalid-feedback" id="search-error">Please enter a valid movie name.</div>
+                
+                <!-- Voice Recognition Box -->
+                <div class="voice-recommend-box mb-4 mt-4 p-3 border border-secondary rounded">
+                    <h5 class="mb-3"><i class="fas fa-microphone"></i> Try Voice Recommendations</h5>
+                    <p class="small mb-3">Tell us what kind of movie you want to watch - we'll analyze your preferences and mood!</p>
+                    
+                    <div class="d-flex align-items-center">
+                        <button class="btn btn-outline-light mr-3" id="voice-record-btn">
+                            <i class="fas fa-microphone"></i> Start Recording
+                        </button>
+                        <div id="recording-status" class="text-muted small">Click to start recording</div>
+                    </div>
+                    
+                    <div id="voice-result" class="mt-3 d-none">
+                        <div class="card bg-dark">
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-2 text-muted">We heard you say:</h6>
+                                <p id="transcript-text" class="card-text"></p>
+                                <div id="voice-recommendations-container"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </form>
             <div id="loader" style="display:none;">
@@ -1929,6 +1957,148 @@
                     button.classList.add('active');
                 }, delay);
             });
+        });
+    </script>
+
+    <!-- Voice Recognition JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const recordBtn = document.getElementById('voice-record-btn');
+            const recordingStatus = document.getElementById('recording-status');
+            const voiceResult = document.getElementById('voice-result');
+            const transcriptText = document.getElementById('transcript-text');
+            const recommendationsContainer = document.getElementById('voice-recommendations-container');
+            
+            let mediaRecorder;
+            let audioChunks = [];
+            let isRecording = false;
+            
+            // Function to handle recording start/stop
+            recordBtn.addEventListener('click', function() {
+                if (isRecording) {
+                    // Stop recording
+                    stopRecording();
+                } else {
+                    // Start recording
+                    startRecording();
+                }
+            });
+            
+            // Start recording function
+            async function startRecording() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    
+                    // Set up event handlers
+                    mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+                    
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        sendAudioToServer(audioBlob);
+                    };
+                    
+                    // Start recording
+                    audioChunks = [];
+                    mediaRecorder.start();
+                    isRecording = true;
+                    
+                    // Update UI
+                    recordBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Recording';
+                    recordBtn.classList.remove('btn-outline-light');
+                    recordBtn.classList.add('btn-danger');
+                    recordingStatus.textContent = 'Recording... (speak clearly)';
+                    recordingStatus.classList.add('text-danger');
+                    
+                    // Auto-stop after 10 seconds
+                    setTimeout(() => {
+                        if (isRecording) {
+                            stopRecording();
+                        }
+                    }, 10000);
+                    
+                } catch (err) {
+                    console.error("Error accessing microphone:", err);
+                    alert("Could not access your microphone. Please check your browser permissions.");
+                }
+            }
+            
+            // Stop recording function
+            function stopRecording() {
+                if (mediaRecorder && isRecording) {
+                    mediaRecorder.stop();
+                    isRecording = false;
+                    
+                    // Update UI
+                    recordBtn.innerHTML = '<i class="fas fa-microphone"></i> Start Recording';
+                    recordBtn.classList.remove('btn-danger');
+                    recordBtn.classList.add('btn-outline-light');
+                    recordingStatus.textContent = 'Processing your request...';
+                    recordingStatus.classList.remove('text-danger');
+                    
+                    // Stop all audio tracks
+                    mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                }
+            }
+            
+            // Send audio to server
+            function sendAudioToServer(audioBlob) {
+                const formData = new FormData();
+                formData.append('audio_data', audioBlob, 'recording.wav');
+                
+                fetch('/voice_recommend', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    recordingStatus.textContent = 'Done!';
+                    
+                    if (data.success) {
+                        // Show the results
+                        voiceResult.classList.remove('d-none');
+                        transcriptText.textContent = data.transcript;
+                        
+                        // Display recommendations
+                        if (data.recommendations && data.recommendations.length > 0) {
+                            let recommendationsHTML = '<h6 class="mt-3">Here are some movies you might enjoy:</h6><div class="row">';
+                            
+                            data.recommendations.forEach(movie => {
+                                recommendationsHTML += `
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card bg-dark h-100">
+                                            <div class="card-body">
+                                                <h5 class="card-title">${movie.title} (${movie.year})</h5>
+                                                <h6 class="card-subtitle mb-2 text-muted">${movie.genres}</h6>
+                                                <p class="card-text small">${movie.plot}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            
+                            recommendationsHTML += '</div>';
+                            recommendationsContainer.innerHTML = recommendationsHTML;
+                        } else {
+                            recommendationsContainer.innerHTML = '<p class="text-muted">No recommendations found based on your preferences.</p>';
+                        }
+                    } else {
+                        // Show error
+                        voiceResult.classList.remove('d-none');
+                        transcriptText.textContent = data.error || "Sorry, we couldn't process your request.";
+                        recommendationsContainer.innerHTML = '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    recordingStatus.textContent = 'Error processing request';
+                    voiceResult.classList.remove('d-none');
+                    transcriptText.textContent = "Sorry, there was an error processing your request.";
+                    recommendationsContainer.innerHTML = '';
+                });
+            }
         });
     </script>
 </body>
