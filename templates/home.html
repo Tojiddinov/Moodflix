@@ -1647,12 +1647,28 @@
                 <div class="invalid-feedback" id="search-error">Please enter a valid movie name.</div>
                 
                 <!-- Voice Recognition Box -->
-                <div class="voice-recommend-box mb-4 mt-4 p-3 border border-secondary rounded">
-                    <h5 class="mb-3"><i class="fas fa-microphone"></i> Try Voice Recommendations</h5>
-                    <p class="small mb-3">Tell us what kind of movie you want to watch - we'll analyze your preferences and mood!</p>
+                <div class="voice-recommend-box mb-4 mt-4 p-3 border border-secondary rounded bg-dark">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="mr-3">
+                            <span class="fa-stack fa-lg">
+                                <i class="fas fa-circle fa-stack-2x text-primary"></i>
+                                <i class="fas fa-microphone fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </div>
+                        <div>
+                            <h5 class="mb-1">Try Voice Recommendations</h5>
+                            <p class="small mb-0 text-muted">Tell us what kind of movie you want to watch - we'll analyze your preferences and mood!</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-dark-subtle border-0 mb-3">
+                        <div class="card-body py-2 px-3">
+                            <p class="small mb-0"><i class="fas fa-lightbulb text-warning mr-2"></i> Try saying: "I want to watch a comedy with Tom Hanks" or "Show me action movies from the 90s"</p>
+                        </div>
+                    </div>
                     
                     <div class="d-flex align-items-center">
-                        <button class="btn btn-outline-light mr-3" id="voice-record-btn">
+                        <button class="btn btn-primary mr-3" id="voice-record-btn">
                             <i class="fas fa-microphone"></i> Start Recording
                         </button>
                         <div id="recording-status" class="text-muted small">Click to start recording</div>
@@ -1662,8 +1678,8 @@
                         <div class="card bg-dark">
                             <div class="card-body">
                                 <h6 class="card-subtitle mb-2 text-muted">We heard you say:</h6>
-                                <p id="transcript-text" class="card-text"></p>
-                                <div id="voice-recommendations-container"></div>
+                                <p id="transcript-text" class="card-text p-2 bg-dark-subtle rounded"></p>
+                                <div id="voice-recommendations-container" class="mt-3"></div>
                             </div>
                         </div>
                     </div>
@@ -2066,15 +2082,31 @@
                             let recommendationsHTML = '<h6 class="mt-3">Here are some movies you might enjoy:</h6><div class="row">';
                             
                             data.recommendations.forEach(movie => {
+                                // Link to movie details if we have a TMDB ID, otherwise just show the card
+                                const movieLink = movie.tmdb_id ? 
+                                    `/movie_details?title=${encodeURIComponent(movie.title)}` : 
+                                    '#';
+                                const linkClass = movie.tmdb_id ? '' : 'disabled';
+                                
                                 recommendationsHTML += `
                                     <div class="col-md-6 mb-3">
-                                        <div class="card bg-dark h-100">
-                                            <div class="card-body">
-                                                <h5 class="card-title">${movie.title} (${movie.year})</h5>
-                                                <h6 class="card-subtitle mb-2 text-muted">${movie.genres}</h6>
-                                                <p class="card-text small">${movie.plot}</p>
+                                        <a href="${movieLink}" class="text-decoration-none ${linkClass}">
+                                            <div class="card bg-dark h-100 movie-card">
+                                                <div class="row no-gutters">
+                                                    <div class="col-md-4">
+                                                        <img src="${movie.poster}" class="card-img" alt="${movie.title}" style="height: 100%; object-fit: cover;">
+                                                    </div>
+                                                    <div class="col-md-8">
+                                                        <div class="card-body">
+                                                            <h5 class="card-title">${movie.title} ${movie.year ? `(${movie.year})` : ''}</h5>
+                                                            <h6 class="card-subtitle mb-2 text-muted">${movie.genres}</h6>
+                                                            <p class="card-text small overflow-hidden" style="max-height: 100px;">${movie.plot}</p>
+                                                            ${movie.tmdb_id ? '<small class="text-primary">Click for details</small>' : ''}
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
+                                        </a>
                                     </div>
                                 `;
                             });

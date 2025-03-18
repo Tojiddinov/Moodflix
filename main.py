@@ -741,17 +741,71 @@ def voice_recommend():
             # Get movie recommendations based on the extracted preferences
             recommendations = voice_recommender.recommend_movies(limit=5)
             
-            # Format the recommendations for display
-            formatted_recs = []
-            for movie in recommendations:
-                formatted_recs.append({
-                    "title": movie["title"],
-                    "year": movie["year"],
-                    "genres": ", ".join(movie["genres"]),
-                    "plot": movie["plot"],
-                    # Generate a placeholder image URL if we don't have actual poster URLs
-                    "poster": f"https://via.placeholder.com/300x450.png?text={movie['title'].replace(' ', '+')}"
+            if not recommendations:
+                return jsonify({
+                    "success": False,
+                    "error": "No movies found matching your preferences. Try different criteria.",
+                    "transcript": transcript
                 })
+            
+            # Use TMDB API to get posters and additional details
+            my_api_key = '3b9553fe71eb09a8552cecc1dfd02e92'
+            formatted_recs = []
+            
+            for movie in recommendations:
+                movie_title = movie["title"]
+                # Search for the movie in TMDB
+                search_url = f'https://api.themoviedb.org/3/search/movie?api_key={my_api_key}&query={movie_title}'
+                
+                try:
+                    response = requests.get(search_url)
+                    if response.status_code == 200 and response.json()['results']:
+                        tmdb_movie = response.json()['results'][0]
+                        
+                        # Get poster path, or use placeholder if not available
+                        poster_path = tmdb_movie.get('poster_path', '')
+                        poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else f"https://via.placeholder.com/300x450.png?text={movie_title.replace(' ', '+')}"
+                        
+                        # Get TMDB movie ID for linking to details
+                        tmdb_id = tmdb_movie.get('id')
+                        
+                        # Get release year from TMDB if not in our data
+                        year = movie.get("year")
+                        if not year and 'release_date' in tmdb_movie and tmdb_movie['release_date']:
+                            try:
+                                year = int(tmdb_movie['release_date'][:4])
+                            except:
+                                pass
+                        
+                        formatted_recs.append({
+                            "title": movie_title,
+                            "year": year,
+                            "genres": ", ".join(movie["genres"]) if movie.get("genres") else "",
+                            "plot": tmdb_movie.get('overview') or movie.get("plot", ""),
+                            "poster": poster_url,
+                            "tmdb_id": tmdb_id
+                        })
+                    else:
+                        # If not found in TMDB, use our data with placeholder
+                        formatted_recs.append({
+                            "title": movie_title,
+                            "year": movie.get("year"),
+                            "genres": ", ".join(movie["genres"]) if movie.get("genres") else "",
+                            "plot": movie.get("plot", ""),
+                            "poster": f"https://via.placeholder.com/300x450.png?text={movie_title.replace(' ', '+')}",
+                            "tmdb_id": None
+                        })
+                except Exception as e:
+                    print(f"Error fetching TMDB data for {movie_title}: {e}")
+                    # Use placeholder data if API call fails
+                    formatted_recs.append({
+                        "title": movie_title,
+                        "year": movie.get("year"),
+                        "genres": ", ".join(movie["genres"]) if movie.get("genres") else "",
+                        "plot": movie.get("plot", ""),
+                        "poster": f"https://via.placeholder.com/300x450.png?text={movie_title.replace(' ', '+')}",
+                        "tmdb_id": None
+                    })
             
             # Return the recommendations along with the transcript
             return jsonify({
@@ -771,17 +825,71 @@ def voice_recommend():
             # Get movie recommendations based on the extracted preferences
             recommendations = voice_recommender.recommend_movies(limit=5)
             
-            # Format the recommendations for display
-            formatted_recs = []
-            for movie in recommendations:
-                formatted_recs.append({
-                    "title": movie["title"],
-                    "year": movie["year"],
-                    "genres": ", ".join(movie["genres"]),
-                    "plot": movie["plot"],
-                    # Generate a placeholder image URL if we don't have actual poster URLs
-                    "poster": f"https://via.placeholder.com/300x450.png?text={movie['title'].replace(' ', '+')}"
+            if not recommendations:
+                return jsonify({
+                    "success": False,
+                    "error": "No movies found matching your preferences. Try different criteria.",
+                    "transcript": transcript
                 })
+            
+            # Use TMDB API to get posters and additional details
+            my_api_key = '3b9553fe71eb09a8552cecc1dfd02e92'
+            formatted_recs = []
+            
+            for movie in recommendations:
+                movie_title = movie["title"]
+                # Search for the movie in TMDB
+                search_url = f'https://api.themoviedb.org/3/search/movie?api_key={my_api_key}&query={movie_title}'
+                
+                try:
+                    response = requests.get(search_url)
+                    if response.status_code == 200 and response.json()['results']:
+                        tmdb_movie = response.json()['results'][0]
+                        
+                        # Get poster path, or use placeholder if not available
+                        poster_path = tmdb_movie.get('poster_path', '')
+                        poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else f"https://via.placeholder.com/300x450.png?text={movie_title.replace(' ', '+')}"
+                        
+                        # Get TMDB movie ID for linking to details
+                        tmdb_id = tmdb_movie.get('id')
+                        
+                        # Get release year from TMDB if not in our data
+                        year = movie.get("year")
+                        if not year and 'release_date' in tmdb_movie and tmdb_movie['release_date']:
+                            try:
+                                year = int(tmdb_movie['release_date'][:4])
+                            except:
+                                pass
+                        
+                        formatted_recs.append({
+                            "title": movie_title,
+                            "year": year,
+                            "genres": ", ".join(movie["genres"]) if movie.get("genres") else "",
+                            "plot": tmdb_movie.get('overview') or movie.get("plot", ""),
+                            "poster": poster_url,
+                            "tmdb_id": tmdb_id
+                        })
+                    else:
+                        # If not found in TMDB, use our data with placeholder
+                        formatted_recs.append({
+                            "title": movie_title,
+                            "year": movie.get("year"),
+                            "genres": ", ".join(movie["genres"]) if movie.get("genres") else "",
+                            "plot": movie.get("plot", ""),
+                            "poster": f"https://via.placeholder.com/300x450.png?text={movie_title.replace(' ', '+')}",
+                            "tmdb_id": None
+                        })
+                except Exception as e:
+                    print(f"Error fetching TMDB data for {movie_title}: {e}")
+                    # Use placeholder data if API call fails
+                    formatted_recs.append({
+                        "title": movie_title,
+                        "year": movie.get("year"),
+                        "genres": ", ".join(movie["genres"]) if movie.get("genres") else "",
+                        "plot": movie.get("plot", ""),
+                        "poster": f"https://via.placeholder.com/300x450.png?text={movie_title.replace(' ', '+')}",
+                        "tmdb_id": None
+                    })
             
             # Return the recommendations along with the transcript
             return jsonify({
