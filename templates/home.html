@@ -2064,60 +2064,24 @@
                 const formData = new FormData();
                 formData.append('audio_data', audioBlob, 'recording.wav');
                 
+                recordingStatus.textContent = 'Processing your request...';
+                
                 fetch('/voice_recommend', {
                     method: 'POST',
                     body: formData
                 })
                 .then(response => response.json())
                 .then(data => {
-                    recordingStatus.textContent = 'Done!';
-                    
                     if (data.success) {
-                        // Show the results
-                        voiceResult.classList.remove('d-none');
-                        transcriptText.textContent = data.transcript;
+                        // Store the transcript in sessionStorage
+                        sessionStorage.setItem('voice_transcript', data.transcript);
+                        sessionStorage.setItem('voice_recommendations', JSON.stringify(data.recommendations));
                         
-                        // Display recommendations
-                        if (data.recommendations && data.recommendations.length > 0) {
-                            let recommendationsHTML = '<h6 class="mt-3">Here are some movies you might enjoy:</h6><div class="row">';
-                            
-                            data.recommendations.forEach(movie => {
-                                // Link to movie details if we have a TMDB ID, otherwise just show the card
-                                const movieLink = movie.tmdb_id ? 
-                                    `/movie_details?title=${encodeURIComponent(movie.title)}` : 
-                                    '#';
-                                const linkClass = movie.tmdb_id ? '' : 'disabled';
-                                
-                                recommendationsHTML += `
-                                    <div class="col-md-6 mb-3">
-                                        <a href="${movieLink}" class="text-decoration-none ${linkClass}">
-                                            <div class="card bg-dark h-100 movie-card">
-                                                <div class="row no-gutters">
-                                                    <div class="col-md-4">
-                                                        <img src="${movie.poster}" class="card-img" alt="${movie.title}" style="height: 100%; object-fit: cover;">
-                                                    </div>
-                                                    <div class="col-md-8">
-                                                        <div class="card-body">
-                                                            <h5 class="card-title">${movie.title} ${movie.year ? `(${movie.year})` : ''}</h5>
-                                                            <h6 class="card-subtitle mb-2 text-muted">${movie.genres}</h6>
-                                                            <p class="card-text small overflow-hidden" style="max-height: 100px;">${movie.plot}</p>
-                                                            ${movie.tmdb_id ? '<small class="text-primary">Click for details</small>' : ''}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    </div>
-                                `;
-                            });
-                            
-                            recommendationsHTML += '</div>';
-                            recommendationsContainer.innerHTML = recommendationsHTML;
-                        } else {
-                            recommendationsContainer.innerHTML = '<p class="text-muted">No recommendations found based on your preferences.</p>';
-                        }
+                        // Redirect to recommend.html with voice=true parameter
+                        window.location.href = '/recommend?voice=true';
                     } else {
                         // Show error
+                        recordingStatus.textContent = 'Error: ' + (data.error || "Unknown error");
                         voiceResult.classList.remove('d-none');
                         transcriptText.textContent = data.error || "Sorry, we couldn't process your request.";
                         recommendationsContainer.innerHTML = '';

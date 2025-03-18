@@ -636,7 +636,15 @@ def movie_details():
 
 @app.route("/recommend", methods=["GET"])
 def recommend_redirect():
-    # For GET requests, render the recommend.html template with default content
+    # Check if this is a voice recommendation request
+    if request.args.get('voice') == 'true':
+        print("Voice recommendation request - rendering recommend template with voice data")
+        return render_template('recommend.html', 
+                            title="Voice Recommendations",
+                            voice_recommendations=True,  # Flag to indicate voice recommendations
+                            suggestions=get_suggestions())
+    
+    # For regular GET requests, render the recommend.html template with default content
     print("GET request to /recommend route - rendering recommend template")
     return render_template('recommend.html', 
                           title="Movie Recommendations",

@@ -431,5 +431,97 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+<!-- Add this script at the end of the body tag to handle voice recommendations -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if this page was loaded from voice recommendations
+        if ({{ voice_recommendations|default('false')|tojson }}) {
+            // Get the recommendations from sessionStorage
+            const transcript = sessionStorage.getItem('voice_transcript');
+            const recommendationsJSON = sessionStorage.getItem('voice_recommendations');
+            
+            if (transcript && recommendationsJSON) {
+                try {
+                    const recommendations = JSON.parse(recommendationsJSON);
+                    
+                    // Update the page title and content
+                    document.title = "Voice Recommendations - Moodflix";
+                    
+                    // Create a container for the voice results if it doesn't exist
+                    let voiceContainer = document.getElementById('voice-recommendations-container');
+                    if (!voiceContainer) {
+                        voiceContainer = document.createElement('div');
+                        voiceContainer.id = 'voice-recommendations-container';
+                        voiceContainer.className = 'container mt-4';
+                        document.body.insertBefore(voiceContainer, document.querySelector('.footer'));
+                    }
+                    
+                    // Create the content
+                    let content = `
+                        <div class="card mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h4 class="mb-0"><i class="fas fa-microphone mr-2"></i>Voice Recommendations</h4>
+                            </div>
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-3">We heard you say:</h6>
+                                <p class="p-3 bg-light rounded mb-4">"${transcript}"</p>
+                                
+                                <h5 class="mb-3">Here are some movies you might enjoy:</h5>
+                                <div class="row">
+                    `;
+                    
+                    // Add movie cards
+                    recommendations.forEach(movie => {
+                        const movieLink = movie.tmdb_id ? 
+                            `/movie_details?title=${encodeURIComponent(movie.title)}` : 
+                            '#';
+                            
+                        content += `
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100 movie-card">
+                                    <div class="position-relative">
+                                        <img src="${movie.poster}" class="card-img-top" alt="${movie.title}" style="height: 300px; object-fit: cover;">
+                                        <div class="position-absolute p-2 bg-dark text-white" style="bottom: 0; right: 0; opacity: 0.8; border-top-left-radius: 5px;">
+                                            ${movie.year ? movie.year : ''}
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <h5 class="card-title">${movie.title}</h5>
+                                        <p class="card-text small text-muted">${movie.genres}</p>
+                                        <p class="card-text overflow-hidden" style="max-height: 100px;">${movie.plot}</p>
+                                    </div>
+                                    <div class="card-footer bg-transparent">
+                                        <a href="${movieLink}" class="btn btn-primary btn-sm w-100 ${movie.tmdb_id ? '' : 'disabled'}">
+                                            ${movie.tmdb_id ? 'View Details' : 'No Details Available'}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    content += `
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add the content to the page
+                    voiceContainer.innerHTML = content;
+                    
+                    // Scroll to the recommendations
+                    voiceContainer.scrollIntoView({ behavior: 'smooth' });
+                    
+                    // Clean up sessionStorage
+                    // sessionStorage.removeItem('voice_transcript');
+                    // sessionStorage.removeItem('voice_recommendations');
+                } catch (e) {
+                    console.error('Error parsing voice recommendations:', e);
+                }
+            }
+        }
+    });
+</script>
 </body>
 </html>
