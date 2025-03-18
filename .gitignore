@@ -46,4 +46,43 @@ test_audio.*
 *.log
 .DS_Store
 Thumbs.db
-captured_image.jpg 
+captured_image.jpg
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Specific files to ignore
+emotion_log.csv
+hell
+static/deepface.jpg
+static/dep.jpg
+static/gray_dep.jpg
+tatus
+temp_image.jpg
+test_recommendation.py
+
+# History directory
+.history/
+
+# Large data files
+*.pkl
