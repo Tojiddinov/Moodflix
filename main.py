@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 import pandas as pd
 import numpy as np
 import pickle
@@ -10,6 +10,13 @@ from sklearn.metrics.pairwise import cosine_similarity
 import json
 # Import the voice movie recommender
 from voice_movie_recommender import VoiceMovieRecommender
+import os
+import hashlib
+import random
+import string
+from flask_session import Session
+from functools import wraps
+from datetime import datetime, timedelta
 
 # Load NLP model and vectorizer for sentiment analysis
 try:
@@ -246,6 +253,41 @@ def get_suggestions():
 
 
 app = Flask(__name__)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.secret_key = os.environ.get('SECRET_KEY', ''.join(random.choice(string.ascii_letters + string.digits) for i in range(30)))
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
+Session(app)
+
+# Simple user database simulation - in production, use a real database
+users_db = {}
+
+# User authentication
+def hash_password(password, salt=None):
+    """Hash a password with salt for secure storage"""
+    if salt is None:
+        salt = os.urandom(32)
+    pwdhash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+    return salt + pwdhash
+
+def verify_password(stored_password, provided_password):
+    """Verify a stored password against one provided by user"""
+    salt = stored_password[:32]
+    stored_password = stored_password[32:]
+    pwdhash = hashlib.pbkdf2_hmac('sha256', provided_password.encode('utf-8'), salt, 100000)
+    return pwdhash == stored_password
+
+# Login required decorator
+def login_required(f):
+    """Decorator to require login for certain routes"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('auth'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route('/')
 @app.route('/home')
@@ -923,6 +965,136 @@ def voice_recommend():
             "transcript": ""
         })
 
+
+@app.route('/auth')
+def auth():
+    if 'user_id' in session:
+        return redirect(url_for('profile'))
+    return render_template('auth.html')
+
+@app.route('/login', methods=['POST'])
+def login():
+    email = request.form.get('email')
+    password = request.form.get('password')
+    
+    if email in users_db:
+        if verify_password(users_db[email]['password'], password):
+            session['user_id'] = email
+            session['user_name'] = users_db[email]['name']
+            return jsonify({'success': True, 'redirect': url_for('profile')})
+    return jsonify({'success': False, 'message': 'Invalid email or password'})
+
+@app.route('/register', methods=['POST'])
+def register():
+    email = request.form.get('email')
+    password = request.form.get('password')
+    name = request.form.get('name')
+    
+    if email in users_db:
+        return jsonify({'success': False, 'message': 'Email already registered'})
+    
+    # Create new user with secure password hashing
+    users_db[email] = {
+        'name': name,
+        'password': hash_password(password),
+        'created_at': datetime.now(),
+        'watchlist': [],
+        'watched': [],
+        'ratings': {}
+    }
+    
+    session['user_id'] = email
+    session['user_name'] = name
+    return jsonify({'success': True, 'redirect': url_for('profile')})
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('home'))
+
+@app.route('/profile')
+@login_required
+def profile():
+    user_email = session.get('user_id')
+    if user_email and user_email in users_db:
+        user_data = users_db[user_email]
+        return render_template('profile.html', user=user_data, email=user_email)
+    return redirect(url_for('logout'))
+
+# Watchlist management
+@app.route('/add_to_watchlist', methods=['POST'])
+@login_required
+def add_to_watchlist():
+    movie_data = request.json
+    user_email = session.get('user_id')
+    
+    if not user_email or user_email not in users_db:
+        return jsonify({'success': False, 'message': 'User not found'})
+    
+    # Initialize watchlist if it doesn't exist
+    if 'watchlist' not in users_db[user_email]:
+        users_db[user_email]['watchlist'] = []
+    
+    # Check if movie is already in watchlist
+    if not any(m.get('id') == movie_data.get('id') for m in users_db[user_email]['watchlist']):
+        movie_data['added_at'] = datetime.now()
+        users_db[user_email]['watchlist'].append(movie_data)
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'message': 'Movie already in watchlist'})
+
+@app.route('/remove_from_watchlist', methods=['POST'])
+@login_required
+def remove_from_watchlist():
+    movie_id = request.json.get('id')
+    user_email = session.get('user_id')
+    
+    if not user_email or user_email not in users_db:
+        return jsonify({'success': False, 'message': 'User not found'})
+    
+    if 'watchlist' in users_db[user_email]:
+        users_db[user_email]['watchlist'] = [m for m in users_db[user_email]['watchlist'] if m.get('id') != movie_id]
+    return jsonify({'success': True})
+
+# Movie rating
+@app.route('/rate_movie', methods=['POST'])
+@login_required
+def rate_movie():
+    movie_data = request.json
+    rating = movie_data.pop('rating')
+    movie_id = movie_data.get('id')
+    user_email = session.get('user_id')
+    
+    if not user_email or user_email not in users_db:
+        return jsonify({'success': False, 'message': 'User not found'})
+    
+    # Initialize ratings if it doesn't exist
+    if 'ratings' not in users_db[user_email]:
+        users_db[user_email]['ratings'] = {}
+    
+    movie_data['rating'] = rating
+    movie_data['rated_at'] = datetime.now()
+    users_db[user_email]['ratings'][movie_id] = movie_data
+    return jsonify({'success': True})
+
+# Mark movie as watched
+@app.route('/mark_as_watched', methods=['POST'])
+@login_required
+def mark_as_watched():
+    movie_data = request.json
+    user_email = session.get('user_id')
+    
+    if not user_email or user_email not in users_db:
+        return jsonify({'success': False, 'message': 'User not found'})
+    
+    # Initialize watched list if it doesn't exist
+    if 'watched' not in users_db[user_email]:
+        users_db[user_email]['watched'] = []
+    
+    if not any(m.get('id') == movie_data.get('id') for m in users_db[user_email]['watched']):
+        movie_data['watched_at'] = datetime.now()
+        users_db[user_email]['watched'].append(movie_data)
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'message': 'Movie already marked as watched'})
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -270,6 +270,204 @@
             margin-top: 60px;
             border-top: 1px solid rgba(255,255,255,0.05);
         }
+        
+        /* Enhanced styles for voice recommendations page */
+        .voice-hero-section {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            position: relative;
+            color: white;
+            padding: 100px 0 60px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .voice-hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('https://images.unsplash.com/photo-1478720568477-152d9b164e26?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80') no-repeat center;
+            background-size: cover;
+            opacity: 0.15;
+            z-index: 0;
+        }
+        
+        .voice-hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(12,12,12,1) 100%);
+            z-index: 1;
+        }
+        
+        .voice-hero-section .container {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .voice-hero-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e50914 0%, #ff5252 100%);
+            font-size: 34px;
+            color: white;
+            box-shadow: 0 10px 20px rgba(229, 9, 20, 0.4);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(229, 9, 20, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 15px rgba(229, 9, 20, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(229, 9, 20, 0);
+            }
+        }
+        
+        .voice-result-card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            background-color: #1a1a1a;
+        }
+        
+        .voice-result-card .card-header {
+            background: linear-gradient(135deg, #1f1f1f 0%, #282828 100%);
+            color: white;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .voice-transcript {
+            background-color: #262626;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            color: #e6e6e6;
+            position: relative;
+            line-height: 1.6;
+        }
+        
+        .voice-transcript::before {
+            content: '"';
+            position: absolute;
+            top: 0;
+            left: 15px;
+            font-size: 3rem;
+            line-height: 1;
+            color: rgba(255,255,255,0.1);
+        }
+        
+        .voice-transcript::after {
+            content: '"';
+            position: absolute;
+            bottom: -15px;
+            right: 15px;
+            font-size: 3rem;
+            line-height: 1;
+            color: rgba(255,255,255,0.1);
+        }
+        
+        .recommendations-container {
+            margin-top: 30px;
+        }
+        
+        .movie-recommendation-card {
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            height: 100%;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            background-color: #1a1a1a;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .movie-recommendation-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+        
+        .movie-poster-container {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .movie-recommendation-card .movie-poster {
+            width: 100%;
+            height: 380px;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .movie-recommendation-card:hover .movie-poster {
+            transform: scale(1.05);
+        }
+        
+        .movie-details {
+            padding: 20px;
+        }
+        
+        .movie-year-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            backdrop-filter: blur(4px);
+        }
+        
+        .movie-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: white;
+        }
+        
+        .movie-genres {
+            color: #aaa;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+        
+        .movie-plot {
+            color: #ddd;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            max-height: 4.5em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+        
+        .details-btn {
+            margin-top: 15px;
+            background: linear-gradient(135deg, #e50914 0%, #ff5252 100%);
+            border: none;
+            color: white;
+            border-radius: 4px;
+            padding: 8px 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .details-btn:hover {
+            background: linear-gradient(135deg, #ff0a17 0%, #ff6b6b 100%);
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
@@ -403,6 +601,58 @@
     </div>
 </div>
 
+{% elif voice_recommendations|default(false) %}
+<!-- New dedicated layout for voice recommendations -->
+<div class="container-fluid p-0">
+    <section class="voice-hero-section fade-in">
+        <div class="voice-hero-overlay"></div>
+        <div class="container py-5">
+            <div class="row align-items-center py-4">
+                <div class="col-lg-8 mx-auto text-center">
+                    <div class="voice-hero-icon mb-3">
+                        <i class="fas fa-microphone"></i>
+                    </div>
+                    <h1 class="display-4 font-weight-bold mb-3">Voice Recommendations</h1>
+                    <p class="lead mb-4">Our AI analyzed your voice request to find the perfect movies for you</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <div class="container py-5">
+        <div class="card voice-result-card mb-5 shadow-lg">
+            <div class="card-header py-3">
+                <h4 class="mb-0"><i class="fas fa-comment-alt mr-2"></i>Your Voice Request</h4>
+            </div>
+            <div class="card-body">
+                <div id="transcript-display" class="voice-transcript p-4 mb-0"></div>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <h2 class="section-title">Recommended Movies</h2>
+            <p class="text-muted">Based on your preferences and interests</p>
+        </div>
+        
+        <div id="voice-movies-container" class="row recommendations-container mb-5">
+            <!-- Voice recommendations will be inserted here by JavaScript -->
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <p class="mt-3">Loading your personalized recommendations...</p>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="/" class="btn btn-primary btn-lg"><i class="fas fa-home mr-2"></i>Back to Home</a>
+            <button id="new-voice-search" class="btn btn-outline-light btn-lg ml-3">
+                <i class="fas fa-microphone mr-2"></i>New Voice Search
+            </button>
+        </div>
+    </div>
+</div>
+
 {% else %}
 <div class="container mt-5">
     <div class="text-center py-5 fade-in">
@@ -432,7 +682,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
-<!-- Add this script at the end of the body tag to handle voice recommendations -->
+<!-- Improved script for voice recommendations -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Check if this page was loaded from voice recommendations
@@ -445,79 +695,75 @@
                 try {
                     const recommendations = JSON.parse(recommendationsJSON);
                     
-                    // Update the page title and content
-                    document.title = "Voice Recommendations - Moodflix";
-                    
-                    // Create a container for the voice results if it doesn't exist
-                    let voiceContainer = document.getElementById('voice-recommendations-container');
-                    if (!voiceContainer) {
-                        voiceContainer = document.createElement('div');
-                        voiceContainer.id = 'voice-recommendations-container';
-                        voiceContainer.className = 'container mt-4';
-                        document.body.insertBefore(voiceContainer, document.querySelector('.footer'));
+                    // Display the transcript
+                    const transcriptDisplay = document.getElementById('transcript-display');
+                    if (transcriptDisplay) {
+                        transcriptDisplay.textContent = transcript;
                     }
                     
-                    // Create the content
-                    let content = `
-                        <div class="card mb-4">
-                            <div class="card-header bg-primary text-white">
-                                <h4 class="mb-0"><i class="fas fa-microphone mr-2"></i>Voice Recommendations</h4>
-                            </div>
-                            <div class="card-body">
-                                <h6 class="card-subtitle mb-3">We heard you say:</h6>
-                                <p class="p-3 bg-light rounded mb-4">"${transcript}"</p>
+                    // Display the recommendations
+                    const moviesContainer = document.getElementById('voice-movies-container');
+                    if (moviesContainer && recommendations.length > 0) {
+                        // Clear the loading spinner
+                        moviesContainer.innerHTML = '';
+                        
+                        // Add each movie card
+                        recommendations.forEach(movie => {
+                            const movieLink = movie.tmdb_id ? 
+                                `/movie_details?title=${encodeURIComponent(movie.title)}` : 
+                                '#';
                                 
-                                <h5 class="mb-3">Here are some movies you might enjoy:</h5>
-                                <div class="row">
-                    `;
-                    
-                    // Add movie cards
-                    recommendations.forEach(movie => {
-                        const movieLink = movie.tmdb_id ? 
-                            `/movie_details?title=${encodeURIComponent(movie.title)}` : 
-                            '#';
-                            
-                        content += `
-                            <div class="col-md-6 col-lg-4 mb-4">
-                                <div class="card h-100 movie-card">
-                                    <div class="position-relative">
-                                        <img src="${movie.poster}" class="card-img-top" alt="${movie.title}" style="height: 300px; object-fit: cover;">
-                                        <div class="position-absolute p-2 bg-dark text-white" style="bottom: 0; right: 0; opacity: 0.8; border-top-left-radius: 5px;">
-                                            ${movie.year ? movie.year : ''}
-                                        </div>
+                            const card = document.createElement('div');
+                            card.className = 'col-md-6 col-lg-4 mb-4';
+                            card.innerHTML = `
+                                <div class="movie-recommendation-card">
+                                    <div class="movie-poster-container">
+                                        <img src="${movie.poster}" class="movie-poster" alt="${movie.title}">
+                                        ${movie.year ? `<span class="movie-year-badge">${movie.year}</span>` : ''}
                                     </div>
-                                    <div class="card-body">
-                                        <h5 class="card-title">${movie.title}</h5>
-                                        <p class="card-text small text-muted">${movie.genres}</p>
-                                        <p class="card-text overflow-hidden" style="max-height: 100px;">${movie.plot}</p>
-                                    </div>
-                                    <div class="card-footer bg-transparent">
-                                        <a href="${movieLink}" class="btn btn-primary btn-sm w-100 ${movie.tmdb_id ? '' : 'disabled'}">
+                                    <div class="movie-details">
+                                        <h3 class="movie-title">${movie.title}</h3>
+                                        <div class="movie-genres">${movie.genres}</div>
+                                        <p class="movie-plot">${movie.plot}</p>
+                                        <a href="${movieLink}" class="btn details-btn w-100 ${movie.tmdb_id ? '' : 'disabled'}">
                                             ${movie.tmdb_id ? 'View Details' : 'No Details Available'}
                                         </a>
                                     </div>
                                 </div>
-                            </div>
-                        `;
-                    });
-                    
-                    content += `
+                            `;
+                            moviesContainer.appendChild(card);
+                        });
+                    } else if (moviesContainer) {
+                        moviesContainer.innerHTML = `
+                            <div class="col-12 text-center py-5">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    No movie recommendations found based on your voice input.
                                 </div>
                             </div>
-                        </div>
-                    `;
+                        `;
+                    }
                     
-                    // Add the content to the page
-                    voiceContainer.innerHTML = content;
+                    // Add event listener for the new voice search button
+                    const newVoiceSearchBtn = document.getElementById('new-voice-search');
+                    if (newVoiceSearchBtn) {
+                        newVoiceSearchBtn.addEventListener('click', function() {
+                            window.location.href = '/';
+                        });
+                    }
                     
-                    // Scroll to the recommendations
-                    voiceContainer.scrollIntoView({ behavior: 'smooth' });
-                    
-                    // Clean up sessionStorage
-                    // sessionStorage.removeItem('voice_transcript');
-                    // sessionStorage.removeItem('voice_recommendations');
                 } catch (e) {
                     console.error('Error parsing voice recommendations:', e);
+                    if (document.getElementById('voice-movies-container')) {
+                        document.getElementById('voice-movies-container').innerHTML = `
+                            <div class="col-12 text-center py-5">
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    Error loading recommendations. Please try again.
+                                </div>
+                            </div>
+                        `;
+                    }
                 }
             }
         }

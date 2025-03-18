@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login/Register - Moodflix</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:400,500,600,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    :root {
+      --primary-color: #e50914;
+      --dark-color: #141414;
+      --light-color: #f8f9fa;
+      --accent-color: #ffc107;
+      --border-radius: 8px;
+    }
+    
+    body {
+      background-color: var(--dark-color);
+      font-family: 'IBM Plex Sans', sans-serif;
+      color: var(--light-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .auth-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      position: relative;
+      background: url('https://assets.nflxext.com/ffe/siteui/vlv3/93da5c27-626c-4489-9041-e0a9a1b9bdcc/f800712a-1587-4fe0-880a-aeee1da41f69/US-en-20230724-popsignuptwoweeks-perspective_alpha_website_large.jpg') no-repeat center;
+      background-size: cover;
+    }
+    
+    .auth-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(5px);
+    }
+    
+    .auth-box {
+      background: rgba(0, 0, 0, 0.75);
+      border-radius: var(--border-radius);
+      padding: 40px;
+      width: 100%;
+      max-width: 450px;
+      position: relative;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    }
+    
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 30px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .auth-tab {
+      flex: 1;
+      text-align: center;
+      padding: 15px;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      position: relative;
+    }
+    
+    .auth-tab.active {
+      color: var(--primary-color);
+    }
+    
+    .auth-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background-color: var(--primary-color);
+    }
+    
+    .auth-form {
+      display: none;
+    }
+    
+    .auth-form.active {
+      display: block;
+    }
+    
+    .form-group {
+      margin-bottom: 25px;
+      position: relative;
+    }
+    
+    .form-control {
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--light-color);
+      padding: 12px 15px;
+      border-radius: var(--border-radius);
+      transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-color: var(--primary-color);
+      box-shadow: none;
+      color: var(--light-color);
+    }
+    
+    .form-control::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .password-toggle {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+    
+    .password-toggle:hover {
+      color: var(--light-color);
+    }
+    
+    .btn-auth {
+      background-color: var(--primary-color);
+      color: var(--light-color);
+      padding: 12px 20px;
+      border: none;
+      border-radius: var(--border-radius);
+      font-weight: 600;
+      width: 100%;
+      margin-top: 10px;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-auth:hover {
+      background-color: #c30813;
+      transform: translateY(-2px);
+    }
+    
+    .social-login {
+      margin-top: 30px;
+      text-align: center;
+    }
+    
+    .social-login p {
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 20px;
+      position: relative;
+    }
+    
+    .social-login p::before,
+    .social-login p::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 30%;
+      height: 1px;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .social-login p::before {
+      left: 0;
+    }
+    
+    .social-login p::after {
+      right: 0;
+    }
+    
+    .social-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+    
+    .btn-social {
+      flex: 1;
+      max-width: 120px;
+      padding: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--border-radius);
+      background-color: transparent;
+      color: var(--light-color);
+      transition: all 0.3s ease;
+    }
+    
+    .btn-social:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
+    
+    .alert {
+      display: none;
+      margin-bottom: 20px;
+      padding: 12px 15px;
+      border-radius: var(--border-radius);
+      font-size: 0.9rem;
+    }
+    
+    .alert.show {
+      display: block;
+    }
+    
+    .alert-danger {
+      background-color: rgba(220, 53, 69, 0.1);
+      border: 1px solid rgba(220, 53, 69, 0.2);
+      color: #dc3545;
+    }
+    
+    .alert-success {
+      background-color: rgba(40, 167, 69, 0.1);
+      border: 1px solid rgba(40, 167, 69, 0.2);
+      color: #28a745;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <i class="fas fa-film"></i>
+        <span>Moodflix</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/"><i class="fas fa-home mr-2"></i>Home</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="auth-container">
+    <div class="auth-box">
+      <div class="auth-tabs">
+        <div class="auth-tab active" data-form="login">Login</div>
+        <div class="auth-tab" data-form="register">Register</div>
+      </div>
+
+      <div class="alert" role="alert"></div>
+
+      <!-- Login Form -->
+      <form id="login-form" class="auth-form active">
+        <div class="form-group">
+          <input type="email" class="form-control" name="email" placeholder="Email" required>
+        </div>
+        <div class="form-group">
+          <input type="password" class="form-control" name="password" placeholder="Password" required>
+          <i class="fas fa-eye password-toggle"></i>
+        </div>
+        <button type="submit" class="btn btn-auth">Login</button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="register-form" class="auth-form">
+        <div class="form-group">
+          <input type="text" class="form-control" name="name" placeholder="Full Name" required>
+        </div>
+        <div class="form-group">
+          <input type="email" class="form-control" name="email" placeholder="Email" required>
+        </div>
+        <div class="form-group">
+          <input type="password" class="form-control" name="password" placeholder="Password" required>
+          <i class="fas fa-eye password-toggle"></i>
+        </div>
+        <button type="submit" class="btn btn-auth">Register</button>
+      </form>
+
+      <div class="social-login">
+        <p>Or continue with</p>
+        <div class="social-buttons">
+          <button class="btn-social">
+            <i class="fab fa-google"></i>
+          </button>
+          <button class="btn-social">
+            <i class="fab fa-facebook-f"></i>
+          </button>
+          <button class="btn-social">
+            <i class="fab fa-twitter"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <script>
+    // Handle tab query parameter
+    window.addEventListener('load', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tab = urlParams.get('tab');
+      if (tab === 'register') {
+        document.querySelector('.auth-tab[data-form="register"]').click();
+      }
+    });
+
+    // Tab switching
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+        
+        tab.classList.add('active');
+        document.getElementById(`${tab.dataset.form}-form`).classList.add('active');
+        document.querySelector('.alert').classList.remove('show');
+      });
+    });
+
+    // Password visibility toggle
+    document.querySelectorAll('.password-toggle').forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        const input = toggle.previousElementSibling;
+        if (input.type === 'password') {
+          input.type = 'text';
+          toggle.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+          input.type = 'password';
+          toggle.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+      });
+    });
+
+    // Form submission
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const alert = document.querySelector('.alert');
+      
+      try {
+        const response = await fetch('/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            'email': form.querySelector('input[name="email"]').value,
+            'password': form.querySelector('input[name="password"]').value,
+          })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          window.location.href = data.redirect;
+        } else {
+          alert.textContent = data.message;
+          alert.className = 'alert alert-danger show';
+        }
+      } catch (error) {
+        alert.textContent = 'An error occurred. Please try again.';
+        alert.className = 'alert alert-danger show';
+      }
+    });
+
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const alert = document.querySelector('.alert');
+      
+      try {
+        const response = await fetch('/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            'name': form.querySelector('input[name="name"]').value,
+            'email': form.querySelector('input[name="email"]').value,
+            'password': form.querySelector('input[name="password"]').value,
+          })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          window.location.href = data.redirect;
+        } else {
+          alert.textContent = data.message;
+          alert.className = 'alert alert-danger show';
+        }
+      } catch (error) {
+        alert.textContent = 'An error occurred. Please try again.';
+        alert.className = 'alert alert-danger show';
+      }
+    });
+
+    // Social login buttons (placeholder functionality)
+    document.querySelectorAll('.btn-social').forEach(btn => {
+      btn.addEventListener('click', () => {
+        alert('Social login will be implemented soon!');
+      });
+    });
+  </script>
+</body>
+</html> 

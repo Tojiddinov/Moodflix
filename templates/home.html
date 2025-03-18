@@ -1622,8 +1622,13 @@
                 <h1>MOODFLIX</h1>
             </div>
             <div class="auth-buttons">
-                <a href="#">Unlock Features</a>
-                <a href="#login.html">Login</a>
+                {% if 'user_id' not in session %}
+                    <a href="{{ url_for('auth') }}" class="btn btn-outline-light">Login</a>
+                    <a href="{{ url_for('auth') }}?tab=register" class="btn btn-primary">Sign Up</a>
+                {% else %}
+                    <a href="{{ url_for('profile') }}" class="btn btn-outline-light">My Profile</a>
+                    <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+                {% endif %}
             </div>
         </div>
     </header>

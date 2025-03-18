@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile - Moodflix</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans:400,500,600,700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root {
+            --primary-color: #e50914;
+            --dark-color: #141414;
+            --light-color: #f8f9fa;
+            --accent-color: #ffc107;
+            --border-radius: 8px;
+        }
+
+        body {
+            background-color: var(--dark-color);
+            font-family: 'IBM Plex Sans', sans-serif;
+            color: var(--light-color);
+            min-height: 100vh;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            padding: 60px 0 30px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('https://assets.nflxext.com/ffe/siteui/vlv3/93da5c27-626c-4489-9041-e0a9a1b9bdcc/f800712a-1587-4fe0-880a-aeee1da41f69/US-en-20230724-popsignuptwoweeks-perspective_alpha_website_large.jpg') no-repeat center;
+            background-size: cover;
+            opacity: 0.1;
+            z-index: 0;
+        }
+
+        .profile-header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 3rem;
+            color: white;
+            box-shadow: 0 5px 15px rgba(229, 9, 20, 0.3);
+        }
+
+        .profile-name {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .profile-email {
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px 25px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius);
+            backdrop-filter: blur(5px);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .content-section {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .movie-card {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .movie-poster {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .movie-info {
+            padding: 15px;
+        }
+
+        .movie-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 1rem;
+        }
+
+        .movie-meta {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .rating-stars {
+            color: var(--accent-color);
+            margin-top: 5px;
+        }
+
+        .btn-edit-profile {
+            background-color: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .btn-edit-profile:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .btn-browse {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .btn-browse:hover {
+            background-color: #c30813;
+            color: white;
+            transform: translateY(-2px);
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .profile-stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .stat-item {
+                width: 100%;
+            }
+
+            .movie-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-film"></i>
+                <span>Moodflix</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/"><i class="fas fa-home mr-2"></i>Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/watchlist"><i class="fas fa-list mr-2"></i>Watchlist</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Profile Header -->
+    <header class="profile-header">
+        <div class="container">
+            <div class="profile-header-content">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h1 class="profile-name">{{ user.name }}</h1>
+                <p class="profile-email">{{ email }}</p>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ user.get('watched', [])|length }}</div>
+                        <div class="stat-label">Movies Watched</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ user.get('watchlist', [])|length }}</div>
+                        <div class="stat-label">Watchlist</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ user.get('ratings', {})|length }}</div>
+                        <div class="stat-label">Movies Rated</div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <button class="btn btn-edit-profile">
+                        <i class="fas fa-edit mr-2"></i>Edit Profile
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Watched Movies -->
+        <section class="content-section">
+            <h2 class="section-title">
+                <i class="fas fa-check-circle"></i>
+                Recently Watched
+            </h2>
+            {% if user.get('watched', []) %}
+            <div class="movie-grid">
+                {% for movie in user.get('watched', [])[:6] %}
+                <div class="movie-card">
+                    <img src="{{ movie.poster }}" alt="{{ movie.title }}" class="movie-poster">
+                    <div class="movie-info">
+                        <h3 class="movie-title">{{ movie.title }}</h3>
+                        <div class="movie-meta">
+                            Watched on {{ movie.watched_at.strftime('%B %d, %Y') }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-film"></i>
+                <p>You haven't watched any movies yet</p>
+                <a href="/" class="btn-browse">Browse Movies</a>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Watchlist -->
+        <section class="content-section">
+            <h2 class="section-title">
+                <i class="fas fa-list"></i>
+                My Watchlist
+            </h2>
+            {% if user.get('watchlist', []) %}
+            <div class="movie-grid">
+                {% for movie in user.get('watchlist', [])[:6] %}
+                <div class="movie-card">
+                    <img src="{{ movie.poster }}" alt="{{ movie.title }}" class="movie-poster">
+                    <div class="movie-info">
+                        <h3 class="movie-title">{{ movie.title }}</h3>
+                        <div class="movie-meta">
+                            Added on {{ movie.added_at.strftime('%B %d, %Y') }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <p>Your watchlist is empty</p>
+                <a href="/" class="btn-browse">Add Movies</a>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Ratings -->
+        <section class="content-section">
+            <h2 class="section-title">
+                <i class="fas fa-star"></i>
+                My Ratings
+            </h2>
+            {% if user.get('ratings', {}) %}
+            <div class="movie-grid">
+                {% for movie_id, rating in user.get('ratings', {}).items() %}
+                <div class="movie-card">
+                    <img src="{{ rating.poster }}" alt="{{ rating.title }}" class="movie-poster">
+                    <div class="movie-info">
+                        <h3 class="movie-title">{{ rating.title }}</h3>
+                        <div class="rating-stars">
+                            {% for i in range(rating.rating) %}
+                            <i class="fas fa-star"></i>
+                            {% endfor %}
+                            {% for i in range(5 - rating.rating) %}
+                            <i class="far fa-star"></i>
+                            {% endfor %}
+                        </div>
+                        <div class="movie-meta">
+                            Rated on {{ rating.rated_at.strftime('%B %d, %Y') }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-star"></i>
+                <p>You haven't rated any movies yet</p>
+                <a href="/" class="btn-browse">Rate Movies</a>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script>
+        // Edit profile button
+        document.querySelector('.btn-edit-profile').addEventListener('click', function() {
+            alert('Profile editing will be implemented soon!');
+        });
+    </script>
+</body>
+</html> 
