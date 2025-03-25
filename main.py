@@ -17,6 +17,7 @@ import string
 from flask_session import Session
 from functools import wraps
 from datetime import datetime, timedelta
+import tempfile
 
 # Load NLP model and vectorizer for sentiment analysis
 try:
@@ -768,202 +769,54 @@ def mood_recommendations():
 def voice_recommend():
     """Handle voice-based movie recommendations"""
     try:
-        # Check if the request contains audio data
-        if 'audio_data' in request.files:
-            # Save the audio file temporarily
-            audio_file = request.files['audio_data']
-            temp_filename = f"temp_recording_{int(time.time())}.wav"
-            audio_file.save(temp_filename)
-            
-            # Transcribe the audio using Deepgram
-            transcript = voice_recommender.transcribe_audio(temp_filename)
-            
-            if not transcript:
-                return jsonify({
-                    "success": False,
-                    "error": "Failed to transcribe audio. Please try again.",
-                    "transcript": ""
-                })
-            
-            # Extract preferences from the transcript
-            voice_recommender.extract_preferences(transcript)
-            
-            # Get movie recommendations based on the extracted preferences
-            recommendations = voice_recommender.recommend_movies(limit=5)
-            
-            if not recommendations:
-                return jsonify({
-                    "success": False,
-                    "error": "No movies found matching your preferences. Try different criteria.",
-                    "transcript": transcript
-                })
-            
-            # Use TMDB API to get posters and additional details
-            my_api_key = '3b9553fe71eb09a8552cecc1dfd02e92'
-            formatted_recs = []
-            
-            for movie in recommendations:
-                movie_title = movie["title"]
-                # Search for the movie in TMDB
-                search_url = f'https://api.themoviedb.org/3/search/movie?api_key={my_api_key}&query={movie_title}'
-                
-                try:
-                    response = requests.get(search_url)
-                    if response.status_code == 200 and response.json()['results']:
-                        tmdb_movie = response.json()['results'][0]
-                        
-                        # Get poster path, or use placeholder if not available
-                        poster_path = tmdb_movie.get('poster_path', '')
-                        poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else f"https://via.placeholder.com/300x450.png?text={movie_title.replace(' ', '+')}"
-                        
-                        # Get TMDB movie ID for linking to details
-                        tmdb_id = tmdb_movie.get('id')
-                        
-                        # Get release year from TMDB if not in our data
-                        year = movie.get("year")
-                        if not year and 'release_date' in tmdb_movie and tmdb_movie['release_date']:
-                            try:
-                                year = int(tmdb_movie['release_date'][:4])
-                            except:
-                                pass
-                        
-                        formatted_recs.append({
-                            "title": movie_title,
-                            "year": year,
-                            "genres": ", ".join(movie["genres"]) if movie.get("genres") else "",
-                            "plot": tmdb_movie.get('overview') or movie.get("plot", ""),
-                            "poster": poster_url,
-                            "tmdb_id": tmdb_id
-                        })
-                    else:
-                        # If not found in TMDB, use our data with placeholder
-                        formatted_recs.append({
-                            "title": movie_title,
-                            "year": movie.get("year"),
-                            "genres": ", ".join(movie["genres"]) if movie.get("genres") else "",
-                            "plot": movie.get("plot", ""),
-                            "poster": f"https://via.placeholder.com/300x450.png?text={movie_title.replace(' ', '+')}",
-                            "tmdb_id": None
-                        })
-                except Exception as e:
-                    print(f"Error fetching TMDB data for {movie_title}: {e}")
-                    # Use placeholder data if API call fails
-                    formatted_recs.append({
-                        "title": movie_title,
-                        "year": movie.get("year"),
-                        "genres": ", ".join(movie["genres"]) if movie.get("genres") else "",
-                        "plot": movie.get("plot", ""),
-                        "poster": f"https://via.placeholder.com/300x450.png?text={movie_title.replace(' ', '+')}",
-                        "tmdb_id": None
-                    })
-            
-            # Return the recommendations along with the transcript
+        if 'audio_data' not in request.files:
             return jsonify({
-                "success": True,
-                "transcript": transcript,
-                "recommendations": formatted_recs,
-                "preferences": voice_recommender.user_preferences
-            })
+                'success': False,
+                'error': 'No audio file received'
+            }), 400
+            
+        audio_file = request.files['audio_data']
+        if not audio_file:
+            return jsonify({
+                'success': False,
+                'error': 'Empty audio file'
+            }), 400
+            
+        # Save audio file temporarily
+        temp_dir = tempfile.mkdtemp()
+        temp_path = os.path.join(temp_dir, 'recording.wav')
+        audio_file.save(temp_path)
         
-        # If no audio file was provided, check for a text transcript
-        elif 'transcript' in request.json:
-            transcript = request.json['transcript']
+        try:
+            # Process voice input and get recommendations
+            result = voice_recommender.voice_interaction()
             
-            # Extract preferences from the transcript
-            voice_recommender.extract_preferences(transcript)
+            # Clean up temporary file
+            os.unlink(temp_path)
+            os.rmdir(temp_dir)
             
-            # Get movie recommendations based on the extracted preferences
-            recommendations = voice_recommender.recommend_movies(limit=5)
-            
-            if not recommendations:
+            if not result:
                 return jsonify({
-                    "success": False,
-                    "error": "No movies found matching your preferences. Try different criteria.",
-                    "transcript": transcript
-                })
-            
-            # Use TMDB API to get posters and additional details
-            my_api_key = '3b9553fe71eb09a8552cecc1dfd02e92'
-            formatted_recs = []
-            
-            for movie in recommendations:
-                movie_title = movie["title"]
-                # Search for the movie in TMDB
-                search_url = f'https://api.themoviedb.org/3/search/movie?api_key={my_api_key}&query={movie_title}'
+                    'success': False,
+                    'error': 'Could not process voice input'
+                }), 400
                 
-                try:
-                    response = requests.get(search_url)
-                    if response.status_code == 200 and response.json()['results']:
-                        tmdb_movie = response.json()['results'][0]
-                        
-                        # Get poster path, or use placeholder if not available
-                        poster_path = tmdb_movie.get('poster_path', '')
-                        poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}" if poster_path else f"https://via.placeholder.com/300x450.png?text={movie_title.replace(' ', '+')}"
-                        
-                        # Get TMDB movie ID for linking to details
-                        tmdb_id = tmdb_movie.get('id')
-                        
-                        # Get release year from TMDB if not in our data
-                        year = movie.get("year")
-                        if not year and 'release_date' in tmdb_movie and tmdb_movie['release_date']:
-                            try:
-                                year = int(tmdb_movie['release_date'][:4])
-                            except:
-                                pass
-                        
-                        formatted_recs.append({
-                            "title": movie_title,
-                            "year": year,
-                            "genres": ", ".join(movie["genres"]) if movie.get("genres") else "",
-                            "plot": tmdb_movie.get('overview') or movie.get("plot", ""),
-                            "poster": poster_url,
-                            "tmdb_id": tmdb_id
-                        })
-                    else:
-                        # If not found in TMDB, use our data with placeholder
-                        formatted_recs.append({
-                            "title": movie_title,
-                            "year": movie.get("year"),
-                            "genres": ", ".join(movie["genres"]) if movie.get("genres") else "",
-                            "plot": movie.get("plot", ""),
-                            "poster": f"https://via.placeholder.com/300x450.png?text={movie_title.replace(' ', '+')}",
-                            "tmdb_id": None
-                        })
-                except Exception as e:
-                    print(f"Error fetching TMDB data for {movie_title}: {e}")
-                    # Use placeholder data if API call fails
-                    formatted_recs.append({
-                        "title": movie_title,
-                        "year": movie.get("year"),
-                        "genres": ", ".join(movie["genres"]) if movie.get("genres") else "",
-                        "plot": movie.get("plot", ""),
-                        "poster": f"https://via.placeholder.com/300x450.png?text={movie_title.replace(' ', '+')}",
-                        "tmdb_id": None
-                    })
+            return jsonify(result)
             
-            # Return the recommendations along with the transcript
-            return jsonify({
-                "success": True,
-                "transcript": transcript,
-                "recommendations": formatted_recs,
-                "preferences": voice_recommender.user_preferences
-            })
-        
-        else:
-            return jsonify({
-                "success": False,
-                "error": "No audio data or transcript provided",
-                "transcript": ""
-            })
-    
+        except Exception as e:
+            # Clean up temporary file in case of error
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+            if os.path.exists(temp_dir):
+                os.rmdir(temp_dir)
+            raise e
+            
     except Exception as e:
-        import traceback
-        traceback.print_exc()
+        print(f"Error in voice_recommend: {str(e)}")
         return jsonify({
-            "success": False,
-            "error": str(e),
-            "transcript": ""
-        })
+            'success': False,
+            'error': f"An error occurred: {str(e)}"
+        }), 500
 
 
 @app.route('/auth')

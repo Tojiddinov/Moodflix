@@ -1,0 +1,1 @@
+stash@{0}: WIP on main: cfc04447 Add authentication system and improve UI: login/register with secure password hashing, new templates, dynamic auth buttons
