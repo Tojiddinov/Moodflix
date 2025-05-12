@@ -1,8 +1,18 @@
-# MoodFlix 2.0: Advanced Emotion-Driven Movie Recommendation System
+# MoodFlix 3.0: Enhanced Real-Time AI Movie Recommendation System
 
-MoodFlix is an AI-powered movie recommendation system that suggests films based on your current mood. Using voice recognition technology, MoodFlix listens to how you're feeling and provides tailored movie recommendations to match or enhance your emotional state.
+MoodFlix is an AI-powered movie recommendation system that suggests films based on your current mood. Using advanced voice recognition technology, MoodFlix listens to how you're feeling and provides tailored movie recommendations to match or enhance your emotional state. Now featuring real-time chat with MovieBuddyAI for instant, conversational movie recommendations.
 
-## 🚀 New in Version 2.0
+## 🚀 New in Version 3.0
+
+- **Real-Time Chat with MovieBuddyAI**: Instantly chat with our AI assistant for immediate movie recommendations
+- **Enhanced Voice Processing**: Optimized audio handling with browser-compatible WebM/Opus format
+- **No FFmpeg Dependency**: Streamlined audio processing without external dependencies
+- **Robust Voice Recognition**: Multi-stage recognition with improved fallback mechanisms
+- **Better Error Handling**: Enhanced feedback and recovery from recognition errors
+- **Optimized Audio Processing**: Mono channel, 16kHz optimization for speech recognition
+- **Improved Temporary File Management**: Better cleanup of audio processing artifacts
+
+## 🚀 Features from Version 2.0
 
 - **Modernized Architecture**: Completely refactored with a modular, maintainable codebase
 - **Enhanced API**: RESTful API endpoints for all functionality
@@ -15,7 +25,9 @@ MoodFlix is an AI-powered movie recommendation system that suggests films based 
 
 ## 🎯 Features
 
-- **Voice-Activated Recommendations**: Speak naturally about how you're feeling
+- **Real-Time Chat Interface**: Converse naturally with MovieBuddyAI for immediate recommendations
+- **Enhanced Voice-Activated Recommendations**: More reliable speech recognition across browsers
+- **Cross-Browser Audio Support**: Works consistently across different browsers and setups
 - **Text-to-Speech Responses**: Natural-sounding voice for a conversational experience
 - **Multiple Mood Categories**: Get recommendations based on 15+ mood categories
 - **Movie Posters & Details**: Visual movie posters with comprehensive information
@@ -92,18 +104,26 @@ http://localhost:5000
 
 ## 🎮 Usage
 
-1. Click the microphone button or type how you're feeling:
+1. Choose your preferred interaction method:
+   - **Real-time Chat**: Start chatting with MovieBuddyAI for instant recommendations
+   - **Voice Input**: Click the microphone button and speak naturally
+   - **Text Input**: Type your request directly
+
+2. Express what you're looking for in natural language:
+   - "I need an action movie"
    - "I feel happy"
    - "I'm sad today"
    - "I'm feeling bored"
    - "Show me action movies from the 90s"
    - "I want to watch something with Tom Hanks"
 
-2. MoodFlix will process your request and recommend appropriate movies.
+3. MovieBuddyAI will respond immediately with appropriate recommendations.
 
-3. Click on a movie to see more details or find similar movies.
+4. Click on a movie to see more details or find similar movies.
 
-4. View your recommendation history to see past suggestions.
+5. Continue the conversation to refine recommendations or explore new options.
+
+6. View your recommendation history to see past suggestions.
 
 ## 📁 Project Structure
 
@@ -130,17 +150,22 @@ moodflix/
 
 - `GET /api/health`: Health check endpoint
 - `POST /api/chat`: Process text chat input
-- `POST /api/voice`: Process voice input
+- `POST /api/voice`: Process voice input with enhanced audio handling
+- `POST /api/real_time_chat`: Connect to MovieBuddyAI for real-time conversations
 - `GET /api/history`: Get recommendation history
 - `POST /api/movie_details`: Get details for a specific movie
 - `POST /api/similar_movies`: Get similar movies
 - `POST /api/set_volume`: Set the text-to-speech volume
+- `WS /socket.io`: WebSocket endpoint for real-time chat functionality
 
 ## 🔜 Future Enhancements
 
-- Integration with TMDB API for comprehensive movie data
-- User accounts with personalized recommendations
-- Collaborative filtering for improved recommendations
+- Advanced context-aware conversations with MovieBuddyAI
+- Voice personality customization
+- Integration with more streaming services for direct viewing
+- Offline voice recognition for privacy-focused users
+- User accounts with personalized recommendation profiles
+- Collaborative filtering for improved social recommendations
 - Mobile app with cross-platform support
 - Watchlist and favorites functionality
 - Streaming service availability information
