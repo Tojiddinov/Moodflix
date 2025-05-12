@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodFlix - MovieBuddyAI Chat</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- External stylesheet -->
+    <link href="{{ url_for('static', filename='css/real_time_chat.css') }}" rel="stylesheet">
+    <!-- Recorder.js for better audio handling -->
+    <!-- No external recorder dependency needed - using native Web Audio API -->
+    
+    <!-- Real time chat functionality -->
+    <script src="{{ url_for('static', filename='js/real_time_chat.js') }}"></script>
+    <!-- Recommendation bridge to connect API responses to the UI -->
+    <script src="{{ url_for('static', filename='js/recommendation_bridge.js') }}"></script>
+</head>
+<style>
+        :root {
+            --primary-color: #E50914;
+            --secondary-color: #141414;
+            --dark-bg: #0F0F0F;
+            --light-bg: #1A1A1A;
+            --text-color: #FFFFFF;
+            --border-color: #333333;
+            --hover-color: #252525;
+        }
+        
+        body {
+            font-family: 'Roboto', 'Arial', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        .navbar {
+            background-color: var(--secondary-color);
+            padding: 0.5rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .navbar-brand {
+            color: var(--primary-color);
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        /* Main containers */
+        .chat-container {
+            background-color: var(--light-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 140px);
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .recommendations-panel {
+            background-color: var(--light-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 140px);
+            border: 1px solid var(--border-color);
+        }
+        
+        /* Header */
+        .chat-header {
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .chat-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .recommendations-header {
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .recommendations-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 500;
+        }
+        
+        /* Messages area */
+        .chat-messages-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }
+        
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+            border-radius: 3px;
+        }
+        
+        /* Message bubbles */
+        .message {
+            max-width: 85%;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            position: relative;
+            animation: fadeIn 0.3s ease-in-out;
+            line-height: 1.5;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            align-self: flex-end;
+            background-color: var(--primary-color);
+            color: white;
+            border-bottom-right-radius: 0.25rem;
+        }
+        
+        .bot-message {
+            align-self: flex-start;
+            background-color: #2a2a2a;
+            color: var(--text-color);
+            border-bottom-left-radius: 0.25rem;
+        }
+        
+        .message-time {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 0.25rem;
+            text-align: right;
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 1rem;
+            background-color: var(--secondary-color);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 2rem;
+            background-color: #333;
+            color: var(--text-color);
+            margin-right: 0.5rem;
+        }
+        
+        .chat-input input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--primary-color);
+        }
+        
+        .chat-input button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .chat-input button:hover {
+            background-color: #f40612;
+        }
+        
+        .chat-input button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .voice-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .voice-btn {
+            background-color: #333;
+            border: none;
+            border-radius: 50%;
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .voice-btn:hover {
+            background-color: #444;
+        }
+        
+        .voice-btn.recording {
+            background-color: var(--primary-color);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(229, 9, 20, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(229, 9, 20, 0); }
+        }
+        
+        .movie-card {
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .movie-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .movie-info {
+            padding: 1rem;
+        }
+        
+        .movie-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .movie-year {
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        .movie-genres {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+        }
+        
+        .genre-tag {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .movie-plot {
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+            color: #ddd;
+        }
+        
+        /* Typing indicator */
+        .typing-indicator {
+            display: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 1rem;
+            background-color: #2a2a2a;
+            align-self: flex-start;
+            margin: 0.5rem 0 1rem 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            max-width: 60%;
+        }
+        
+        .typing-dots {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .typing-text {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-top: 0.3rem;
+        }
+        
+        .typing-indicator span {
+            height: 0.5rem;
+            width: 0.5rem;
+            background-color: #bbb;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 0.1rem;
+            opacity: 0.4;
+        }
+        
+        .typing-indicator span:nth-child(1) {
+            animation: typing 1s infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation: typing 1s infinite 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation: typing 1s infinite 0.4s;
+        }
+        
+        @keyframes typing {
+            0% { opacity: 0.4; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(-5px); }
+            100% { opacity: 0.4; transform: translateY(0); }
+        }
+        
+        /* Movie recommendations */
+        .movie-recommendations {
+            padding: 1rem;
+            overflow-y: auto;
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.2rem;
+            align-content: start;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }
+        
+        .movie-recommendations::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .movie-recommendations::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .movie-recommendations::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+            border-radius: 3px;
+        }
+        
+        .placeholder-text {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 2rem;
+            color: #888;
+            font-style: italic;
+        }
+        
+        .status-bar {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            color: #aaa;
+            background-color: var(--secondary-color);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .welcome-message {
+            text-align: center;
+            margin: 2rem 0;
+            animation: fadeIn 1s ease-in-out;
+        }
+        
+        .welcome-message h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .welcome-message p {
+            max-width: 600px;
+            margin: 0 auto;
+            color: #aaa;
+        }
+        
+        .welcome-examples {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .example-chip {
+            background-color: #333;
+            color: #ddd;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .example-chip:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+    
+</style>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/"><i class="fas fa-film"></i> MoodFlix</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/real_time_chat">Voice Chat</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/profile">Profile</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-film me-2 text-danger"></i>
+                            <h2 class="mb-0">MovieBuddyAI</h2>
+                            <span id="connection-status" class="ms-2 badge bg-success">Connected</span>
+                        </div>
+                        <div class="chat-controls">
+                            <button class="btn btn-sm btn-outline-danger" id="clear-chat">
+                                <i class="fas fa-trash me-1"></i> Clear Chat
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-messages-wrapper">
+                        <div id="chat-messages" class="chat-messages">
+                            <!-- Messages will be added here dynamically -->
+                        </div>
+                        
+                        <div id="typing-indicator" class="typing-indicator">
+                            <div class="typing-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                            <div class="typing-text">MovieBuddyAI is thinking...</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-input-container">
+                        <div class="input-group">
+                            <textarea id="message-input" class="form-control" 
+                                placeholder="Ask about movies or share your mood..."
+                                rows="1"></textarea>
+                            <button id="record-button" class="btn btn-outline-secondary" type="button" title="Voice Input">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                            <button id="send-button" class="btn btn-danger" type="button" title="Send Message">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="recommendations-panel">
+                    <div class="recommendations-header">
+                        <h3><i class="fas fa-film me-2"></i> Movie Recommendations</h3>
+                    </div>
+                    <div id="movie-recommendations" class="movie-recommendations">
+                        <!-- Movie recommendations will be added here -->
+                        <div class="placeholder-text">
+                            <p>Ask MovieBuddyAI to recommend movies based on your preferences or mood!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Socket.IO library -->
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    
+    <!-- Custom JavaScript for real-time chat -->
+    <script>
+    // Initialize variables
+    let typingIndicator;
+    let chatMessages;
+    let movieRecommendations;
+    let messageInput;
+    let sendButton;
+    let recordButton;
+    let clearChatButton;
+    let connectionStatus;
+    let sessionId;
+    let isRecording = false;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let audioStream = null;
+    let lastTimestamp = 0;
+    let responseCheckInterval;
+    
+    // Generate a unique session ID
+    function generateSessionId() {
+        return `session_${Date.now()}_${Math.floor(Math.random() * 9000) + 1000}`;
+    }
+    
+    // Session management
+    function setupSession() {
+        sessionId = localStorage.getItem('chat_session_id') || generateSessionId();
+        localStorage.setItem('chat_session_id', sessionId);
+        console.log('Session initialized with ID:', sessionId);
+    }
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Document loaded, initializing chat interface');
+        
+        // Get DOM elements
+        typingIndicator = document.getElementById('typing-indicator');
+        chatMessages = document.getElementById('chat-messages');
+        messageInput = document.getElementById('message-input');
+        sendButton = document.getElementById('send-button');
+        recordButton = document.getElementById('record-button');
+        clearChatButton = document.getElementById('clear-chat');
+        movieRecommendations = document.getElementById('movie-recommendations');
+        connectionStatus = document.getElementById('connection-status');
+        
+        // Verify we found all required elements
+        console.log('Elements found:', {
+            typingIndicator: !!typingIndicator,
+            chatMessages: !!chatMessages,
+            messageInput: !!messageInput,
+            sendButton: !!sendButton,
+            recordButton: !!recordButton,
+            clearChatButton: !!clearChatButton,
+            movieRecommendations: !!movieRecommendations,
+            connectionStatus: !!connectionStatus
+        });
+        
+        // Set up session and event listeners
+        setupSession();
+        setupEventListeners();
+        
+        if (typingIndicator) {
+            // Hide typing indicator initially
+            typingIndicator.style.display = 'none';
+        }
+        
+        if (chatMessages) {
+            // Add welcome message
+            addBotMessage('👋 Welcome to MovieBuddyAI! I can help you find the perfect movie for your mood. Try asking for a recommendation or tell me what kind of movie you\'re looking for.');
+            
+            // Add example chips
+            const examples = [
+                'I want to watch something funny',
+                'Recommend a sci-fi movie',
+                'I\'m feeling sad, what should I watch?',
+                'What are some good action movies?'
+            ];
+            
+            const welcomeExamples = document.createElement('div');
+            welcomeExamples.className = 'welcome-examples';
+            examples.forEach(example => {
+                const chip = document.createElement('div');
+                chip.className = 'example-chip';
+                chip.textContent = example;
+                chip.addEventListener('click', () => {
+                    if (messageInput) {
+                        messageInput.value = example;
+                        sendMessage();
+                    }
+                });
+                welcomeExamples.appendChild(chip);
+            });
+            
+            chatMessages.appendChild(welcomeExamples);
+        }
+        
+        // Start polling for responses
+        setConnectionStatus(true);
+        pollForResponses();
+        
+        // Make a test call to displayRecommendations with some sample data
+        setTimeout(() => {
+            console.log('Auto-testing recommendations display...');
+            const testMovies = [
+                { title: 'Test Movie 1', description: 'This is a test movie description.' },
+                { title: 'Test Movie 2', description: 'Another test movie description.' }
+            ];
+            displayRecommendations(testMovies);
+        }, 2000);
+        
+        console.log('Chat interface initialization complete');
+    });
+    
+    // Setup Event Listeners - moved to window.onload to ensure elements exist
+    function setupEventListeners() {
+        // Only set up event listeners if elements exist
+        if (sendButton) {
+            sendButton.addEventListener('click', sendMessage);
+        }
+        
+        if (messageInput) {
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+        }
+        
+        if (recordButton) {
+            recordButton.addEventListener('click', toggleRecording);
+        }
+        
+        if (clearChatButton) {
+            clearChatButton.addEventListener('click', clearChat);
+        }
+    }
+    
+    // Functions - already defined above
+    
+    function sendMessage() {
+        const text = messageInput.value.trim();
+        if (!text) return;
+        
+        // Add user message to UI
+        addUserMessage(text);
+        messageInput.value = '';
+        
+        // Show typing indicator
+        typingIndicator.style.display = 'flex';
+        
+        // Send to backend - Note we're using the updated endpoint
+        fetch('/api/real_time_text_v2', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                text: text,
+                session_id: sessionId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // If response is immediate
+                if (data.response) {
+                    typingIndicator.style.display = 'none';
+                    addBotMessage(data.response);
+                    
+                    // Display recommendations if any
+                    if (data.recommendations && data.recommendations.length > 0) {
+                        displayRecommendations(data.recommendations);
+                    }
+                    
+                    lastTimestamp = data.timestamp || Date.now() / 1000;
+                }
+            } else {
+                typingIndicator.style.display = 'none';
+                addBotMessage('Sorry, I encountered an error processing your request.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            typingIndicator.style.display = 'none';
+            addBotMessage('Sorry, there was a network error. Please try again.');
+        });
+    }
+    
+    function pollForResponses() {
+        // Using the updated endpoint
+        fetch(`/api/check_response_v2?session_id=${sessionId}&timestamp=${lastTimestamp}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.has_response) {
+                    // Hide typing indicator
+                    typingIndicator.style.display = 'none';
+                    
+                    // Add bot message
+                    addBotMessage(data.response);
+                    
+                    // Update timestamp
+                    lastTimestamp = data.timestamp || Date.now() / 1000;
+                    
+                    // Display recommendations if any
+                    if (data.recommendations && data.recommendations.length > 0) {
+                        displayRecommendations(data.recommendations);
+                    }
+                }
+                
+                // Continue polling
+                setTimeout(pollForResponses, 2000);
+            })
+            .catch(error => {
+                console.error('Polling error:', error);
+                setConnectionStatus(false);
+                // Try to reconnect
+                setTimeout(pollForResponses, 5000);
+            });
+    }
+    
+    function addUserMessage(text) {
+        const messageElement = document.createElement('div');
+        messageElement.className = 'message user-message';
+        messageElement.innerHTML = `
+            <div class="message-content">${formatMessageText(text)}</div>
+            <div class="message-time">${formatTime(new Date())}</div>
+        `;
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    function addBotMessage(text) {
+        const messageElement = document.createElement('div');
+        messageElement.className = 'message bot-message';
+        messageElement.innerHTML = `
+            <div class="message-content">${formatMessageText(text)}</div>
+            <div class="message-time">${formatTime(new Date())}</div>
+        `;
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    function formatMessageText(text) {
+        // Replace URLs with links
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        return text.replace(urlRegex, url => `<a href="${url}" target="_blank">${url}</a>`);
+    }
+    
+    function formatTime(date) {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    
+    function displayRecommendations(recommendations) {
+        console.log('DISPLAY RECOMMENDATIONS CALLED with:', recommendations);
+        
+        // Clear the recommendations container
+        movieRecommendations.innerHTML = '';
+        
+        // Add a heading to make it clear recommendations are being shown
+        const heading = document.createElement('div');
+        heading.className = 'recommendations-heading';
+        heading.innerHTML = '<h4>Recommended Movies</h4>';
+        movieRecommendations.appendChild(heading);
+        
+        // Safeguard against non-array recommendations
+        if (!Array.isArray(recommendations)) {
+            console.error('Recommendations is not an array:', recommendations);
+            movieRecommendations.innerHTML += '<div class="placeholder-text">Error displaying recommendations. Please try again.</div>';
+            return;
+        }
+        
+        // Show a message if there are no recommendations
+        if (recommendations.length === 0) {
+            console.log('No recommendations to display');
+            movieRecommendations.innerHTML += '<div class="placeholder-text">No movie recommendations available for this query.</div>';
+            return;
+        }
+        
+        console.log('Iterating through', recommendations.length, 'recommendations');
+        
+        // Create a container for the movies
+        const moviesContainer = document.createElement('div');
+        moviesContainer.className = 'movies-container';
+        moviesContainer.style.display = 'flex';
+        moviesContainer.style.flexDirection = 'column';
+        moviesContainer.style.gap = '10px';
+        
+        // Process each movie recommendation
+        recommendations.forEach((movie, index) => {
+            console.log(`Processing movie ${index}:`, movie);
+            
+            try {
+                // Extract movie data - handling both string and object formats
+                let title, plot, year, genres;
+                
+                if (typeof movie === 'string') {
+                    // Simple string format
+                    title = movie;
+                    plot = '';
+                    year = '';
+                    genres = [];
+                } else if (movie && typeof movie === 'object') {
+                    // Object format with various properties
+                    title = movie.title || `Movie ${index+1}`;
+                    plot = movie.plot || movie.description || movie.overview || '';
+                    year = movie.year || (movie.release_date ? movie.release_date.substring(0, 4) : '');
+                    genres = movie.genres || [];
+                } else {
+                    console.error('Unknown movie format:', movie);
+                    return; // Skip this item
+                }
+                
+                // Create the movie card directly with inline styles for reliability
+                const movieCard = document.createElement('div');
+                movieCard.className = 'movie-card';
+                movieCard.style.backgroundColor = '#333';
+                movieCard.style.borderRadius = '8px';
+                movieCard.style.padding = '12px';
+                movieCard.style.cursor = 'pointer';
+                movieCard.style.transition = 'background-color 0.3s';
+                movieCard.style.display = 'flex';
+                movieCard.style.flexDirection = 'row';
+                movieCard.style.gap = '12px';
+                
+                // Hover effect
+                movieCard.onmouseover = function() { this.style.backgroundColor = '#444'; };
+                movieCard.onmouseout = function() { this.style.backgroundColor = '#333'; };
+                
+                // Create movie info container
+                const infoContainer = document.createElement('div');
+                infoContainer.style.flex = '1';
+                
+                // Create and add title
+                const titleElement = document.createElement('div');
+                titleElement.textContent = title;
+                titleElement.style.fontWeight = 'bold';
+                titleElement.style.fontSize = '1rem';
+                titleElement.style.marginBottom = '5px';
+                infoContainer.appendChild(titleElement);
+                
+                // Add year if available
+                if (year) {
+                    const yearElement = document.createElement('div');
+                    yearElement.textContent = year;
+                    yearElement.style.fontSize = '0.8rem';
+                    yearElement.style.color = '#aaa';
+                    yearElement.style.marginBottom = '5px';
+                    infoContainer.appendChild(yearElement);
+                }
+                
+                // Add genres if available
+                if (genres && genres.length > 0) {
+                    const genresElement = document.createElement('div');
+                    genresElement.textContent = Array.isArray(genres) ? genres.join(', ') : genres;
+                    genresElement.style.fontSize = '0.8rem';
+                    genresElement.style.color = '#aaa';
+                    genresElement.style.marginBottom = '10px';
+                    infoContainer.appendChild(genresElement);
+                }
+                
+                // Add plot if available
+                if (plot) {
+                    const plotElement = document.createElement('div');
+                    plotElement.textContent = plot.length > 150 ? plot.substring(0, 150) + '...' : plot;
+                    plotElement.style.fontSize = '0.9rem';
+                    plotElement.style.lineHeight = '1.4';
+                    infoContainer.appendChild(plotElement);
+                }
+                
+                // Add the info container to the card
+                movieCard.appendChild(infoContainer);
+                
+                // Add click event to get more details about this movie
+                movieCard.addEventListener('click', () => {
+                    if (messageInput) {
+                        messageInput.value = `Tell me more about ${title}`;
+                        sendMessage();
+                    }
+                });
+                
+                // Add the card to the container
+                moviesContainer.appendChild(movieCard);
+                console.log(`Successfully added movie card for: ${title}`);
+            } catch (error) {
+                console.error('Error creating movie card:', error, error.stack);
+            }
+        });
+        
+        // Add all the movies to the recommendations panel
+        movieRecommendations.appendChild(moviesContainer);
+        console.log(`Added ${recommendations.length} movie cards to the recommendations panel`);
+        
+        // Add movie card styles if they don't exist
+        if (!document.getElementById('movie-card-styles')) {
+            const styleElement = document.createElement('style');
+            styleElement.id = 'movie-card-styles';
+            styleElement.textContent = `
+                .recommendations-heading {
+                    padding: 10px 15px;
+                    font-size: 1rem;
+                    background-color: #333;
+                    border-bottom: 1px solid #444;
+                }
+                
+                .movie-card {
+                    background-color: #2a2a2a;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    transition: transform 0.3s, box-shadow 0.3s;
+                    cursor: pointer;
+                    display: flex;
+                    flex-direction: column;
+                    margin-bottom: 15px;
+                }
+                
+                .movie-card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+                }
+                
+                .movie-poster {
+                    height: 180px;
+                    overflow: hidden;
+                }
+                
+                .movie-poster img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                
+                .movie-info {
+                    padding: 12px;
+                    flex: 1;
+                }
+                
+                .movie-title {
+                    font-weight: bold;
+                    margin-bottom: 5px;
+                    font-size: 0.9rem;
+                }
+                
+                .movie-year {
+                    font-size: 0.8rem;
+                    color: #aaa;
+                    margin-bottom: 5px;
+                }
+                
+                .movie-description {
+                    font-size: 0.8rem;
+                    color: #ddd;
+                    line-height: 1.4;
+                }
+                
+                /* Add debug button */
+                .debug-button {
+                    position: fixed;
+                    bottom: 10px;
+                    right: 10px;
+                    background-color: #555;
+                    color: white;
+                    border: none;
+                    padding: 5px 10px;
+                    border-radius: 4px;
+                    z-index: 1000;
+                    font-size: 0.8rem;
+                }
+            `;
+            document.head.appendChild(styleElement);
+        }
+        
+    }
+    
+    // Add a debug button to test recommendations manually
+    const debugButton = document.createElement('button');
+    debugButton.className = 'debug-button';
+    debugButton.textContent = 'Test Recommendations';
+    debugButton.addEventListener('click', testRecommendations);
+    document.body.appendChild(debugButton);
+    
+    // Test function to display sample recommendations
+    function testRecommendations() {
+        console.log('Running test recommendations function');
+        
+        const testMovies = [
+            {
+                title: 'The Shawshank Redemption',
+                description: 'Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.',
+                year: 1994
+            },
+            {
+                title: 'The Godfather',
+                description: 'The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.',
+                year: 1972
+            },
+            {
+                title: 'The Dark Knight',
+                description: 'When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.',
+                year: 2008
+            }
+        ];
+        
+        console.log('Displaying test recommendations:', testMovies);
+        displayRecommendations(testMovies);
+        console.log('Test recommendations should be displayed now');
+    }
+    
+    function toggleRecording() {
+        if (isRecording) {
+            stopRecording();
+        } else {
+            startRecording();
+        }
+    }
+    
+    // Setup event listeners
+    function setupEventListeners() {
+        // Record button click
+        recordButton.addEventListener('click', toggleRecording);
+        
+        // Send button click
+        sendButton.addEventListener('click', sendMessage);
+        
+        // Enter key press
+        messageInput.addEventListener('keydown', event => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // Clear chat button
+        clearChatButton.addEventListener('click', clearChat);
+    }
+    
+    function startRecording() {
+        // Request microphone access
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                audioStream = stream;
+                audioChunks = [];
+                
+                // Create audio recorder with simple settings to maximize compatibility
+                // No specific MIME type to let browser use its most compatible format
+                mediaRecorder = new MediaRecorder(stream);
+                
+                // Collect audio chunks
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+                
+                // Start recording with small chunks
+                mediaRecorder.start(100);
+                console.log('Recording started with MediaRecorder using default format');
+                isRecording = true;
+                
+                // Update UI
+                recordButton.classList.add('recording');
+                recordButton.innerHTML = '<i class="fas fa-stop"></i>';
+            })
+            .catch(error => {
+                console.error('Error accessing microphone:', error);
+                addBotMessage('Unable to access your microphone. Please check your permissions.');
+            });
+    }
+    
+    function stopRecording() {
+        if (mediaRecorder && isRecording) {
+            // Stop the recorder
+            mediaRecorder.stop();
+            isRecording = false;
+            
+            // Update UI
+            recordButton.classList.remove('recording');
+            recordButton.innerHTML = '<i class="fas fa-microphone"></i>';
+            
+            // Show typing indicator
+            typingIndicator.style.display = 'flex';
+            
+            // Process recorded audio when recording is complete
+            mediaRecorder.onstop = () => {
+                // Combine all audio chunks into a single blob
+                const audioBlob = new Blob(audioChunks);
+                console.log('Recording finished, size:', audioBlob.size, 'bytes');
+                
+                // Use FormData directly instead of base64 encoding
+                const formData = new FormData();
+                formData.append('audio_data', audioBlob, 'recording.webm');
+                formData.append('session_id', sessionId);
+                
+                // Show user message
+                addUserMessage("Voice message sent");
+                
+                // Send the audio directly via FormData
+                fetch('/api/real_time_voice', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Server error: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Voice processing response:', data);
+                    
+                    if (data.success) {
+                        // Replace user message with transcription if available
+                        if (data.transcription && data.transcription !== "Voice input received") {
+                            const userMessages = document.querySelectorAll('.user-message');
+                            if (userMessages.length > 0) {
+                                const lastUserMessage = userMessages[userMessages.length - 1];
+                                const contentEl = lastUserMessage.querySelector('.message-content');
+                                if (contentEl) {
+                                    contentEl.textContent = data.transcription;
+                                }
+                            }
+                        }
+                        
+                        // Show AI response if available
+                        if (data.response) {
+                            typingIndicator.style.display = 'none';
+                            addBotMessage(data.response);
+                            
+                            if (data.recommendations && data.recommendations.length > 0) {
+                                displayRecommendations(data.recommendations);
+                            }
+                        }
+                        
+                        lastTimestamp = data.timestamp || Date.now() / 1000;
+                    } else {
+                        typingIndicator.style.display = 'none';
+                        addBotMessage(data.error || 'Sorry, I couldn\'t process your voice input.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error sending audio:', error);
+                    typingIndicator.style.display = 'none';
+                    addBotMessage('Sorry, there was an error processing your voice input. Please try typing your request instead.');
+                });
+                
+                // Stop all tracks in the stream
+                if (audioStream) {
+                    audioStream.getTracks().forEach(track => track.stop());
+                }
+            };
+        }
+    }
+    
+    // No longer needed since we're sending audio directly in stopRecording
+    // This function has been integrated into stopRecording
+    
+    function clearChat() {
+        // Clear UI
+        chatMessages.innerHTML = '';
+        movieRecommendations.innerHTML = '';
+        
+        // Reset session
+        fetch(`/api/clear_chat?session_id=${sessionId}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    addBotMessage('Chat history cleared. How can I help you today?');
+                } else {
+                    addBotMessage('There was an issue clearing your chat history.');
+                }
+            })
+            .catch(error => {
+                console.error('Error clearing chat:', error);
+            });
+    }
+    
+    function setConnectionStatus(connected) {
+        connectionStatus.textContent = connected ? 'Connected' : 'Disconnected';
+        connectionStatus.className = connected ? 'connected' : 'disconnected';
+    }
+    
+    // Call setup functions when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        setupEventListeners();
+    });
+</script>
+</body>
+</html>

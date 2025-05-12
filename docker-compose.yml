@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  moodflix:
+    build: .
+    container_name: moodflix
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./:/app
+      - ./uploads:/app/uploads
+    env_file:
+      - .env
+    environment:
+      - FLASK_APP=app_main.py
+      - FLASK_ENV=production
+      - DEBUG=False
+    command: gunicorn --bind 0.0.0.0:5000 app_main:app

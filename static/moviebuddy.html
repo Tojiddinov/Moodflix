@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MovieBuddy AI - Voice Interface</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .voice-interface {
+            background-color: rgba(20, 20, 20, 0.9);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            margin: 40px auto;
+        }
+        
+        .voice-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .voice-header img {
+            width: 60px;
+            height: 60px;
+            margin-right: 15px;
+            border-radius: 50%;
+        }
+        
+        .voice-header h2 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: #fff;
+        }
+        
+        .voice-controls {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .voice-button {
+            background: linear-gradient(135deg, #e50914, #ff4b2b);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(229, 9, 20, 0.3);
+        }
+        
+        .voice-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(229, 9, 20, 0.4);
+        }
+        
+        .voice-button.recording {
+            animation: pulse 1.5s infinite;
+            background: linear-gradient(135deg, #ff4b2b, #e50914);
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 5px 15px rgba(229, 9, 20, 0.3);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 8px 25px rgba(229, 9, 20, 0.5);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 5px 15px rgba(229, 9, 20, 0.3);
+            }
+        }
+        
+        .voice-status {
+            text-align: center;
+            margin: 20px 0;
+            min-height: 50px;
+        }
+        
+        .voice-status p {
+            margin: 0;
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .conversation {
+            margin-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+        }
+        
+        .conversation-bubble {
+            margin-bottom: 20px;
+            display: flex;
+        }
+        
+        .user-bubble {
+            justify-content: flex-end;
+        }
+        
+        .assistant-bubble {
+            justify-content: flex-start;
+        }
+        
+        .bubble-content {
+            max-width: 80%;
+            padding: 15px;
+            border-radius: 18px;
+            position: relative;
+        }
+        
+        .user-bubble .bubble-content {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .assistant-bubble .bubble-content {
+            background: linear-gradient(135deg, rgba(229, 9, 20, 0.2), rgba(229, 9, 20, 0.1));
+            color: white;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .bubble-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        .user-bubble .bubble-avatar {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        
+        .assistant-bubble .bubble-avatar {
+            background: linear-gradient(135deg, #e50914, #ff4b2b);
+            color: white;
+        }
+        
+        .follow-up-indicator {
+            text-align: center;
+            margin: 20px 0;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.6);
+            display: none;
+        }
+        
+        .typing-indicator {
+            display: inline-block;
+            margin-left: 5px;
+        }
+        
+        .typing-indicator span {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        .movie-recommendations {
+            margin-top: 30px;
+        }
+        
+        .movie-recommendations h3 {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: white;
+        }
+        
+        .movie-cards {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            padding: 10px 0;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+        
+        .movie-cards::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .movie-cards::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .movie-cards::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+        }
+        
+        .movie-card {
+            min-width: 160px;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .movie-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .movie-card img {
+            width: 100%;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+        }
+        
+        .movie-card-content {
+            padding: 10px;
+        }
+        
+        .movie-card-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .movie-card-year {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .movie-card-rating {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 5px;
+        }
+        
+        .movie-card-rating i {
+            color: #ffc107;
+            margin-right: 5px;
+        }
+        
+        .clear-conversation {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .clear-button {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .clear-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="voice-interface">
+            <div class="voice-header">
+                <img src="/static/Untitled design (2).png" alt="MovieBuddy AI">
+                <h2>MovieBuddy AI</h2>
+            </div>
+            
+            <div class="voice-status">
+                <p id="status-message">Hi! I'm MovieBuddy AI. Click the microphone button and tell me what kind of movie you're looking for.</p>
+            </div>
+            
+            <div class="voice-controls">
+                <button id="voice-button" class="voice-button">
+                    <i class="fas fa-microphone"></i>
+                </button>
+            </div>
+            
+            <div id="transcription" style="display: none;" class="alert alert-secondary"></div>
+            
+            <div id="follow-up-indicator" class="follow-up-indicator">
+                MovieBuddy is waiting for your response
+                <div class="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            
+            <div id="conversation" class="conversation">
+                <div class="conversation-bubble assistant-bubble">
+                    <div class="bubble-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="bubble-content">
+                        <p>Hey there! I'm MovieBuddy AI. What kind of movie are you in the mood for today?</p>
+                    </div>
+                </div>
+                <!-- Conversation bubbles will be added here dynamically -->
+            </div>
+            
+            <div id="movie-recommendations" class="movie-recommendations" style="display: none;">
+                <h3>Recommended Movies</h3>
+                <div id="movie-cards" class="movie-cards">
+                    <!-- Movie cards will be added here dynamically -->
+                </div>
+            </div>
+            
+            <div class="clear-conversation">
+                <button id="clear-button" class="clear-button">
+                    <i class="fas fa-trash-alt"></i> Clear Conversation
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const voiceButton = document.getElementById('voice-button');
+            const statusMessage = document.getElementById('status-message');
+            const transcription = document.getElementById('transcription');
+            const conversation = document.getElementById('conversation');
+            const followUpIndicator = document.getElementById('follow-up-indicator');
+            const movieRecommendations = document.getElementById('movie-recommendations');
+            const movieCards = document.getElementById('movie-cards');
+            const clearButton = document.getElementById('clear-button');
+            
+            let isRecording = false;
+            let mediaRecorder;
+            let audioChunks = [];
+            
+            // API endpoints
+            const API = {
+                MOVIEBUDDY: '/api/moviebuddy'
+            };
+            
+            // Initialize with user ID
+            const userId = 'default_user'; // This would be replaced with actual user ID from authentication
+            
+            voiceButton.addEventListener('click', function() {
+                if (isRecording) {
+                    stopRecording();
+                } else {
+                    startRecording();
+                }
+            });
+            
+            clearButton.addEventListener('click', function() {
+                clearConversation();
+            });
+            
+            function startRecording() {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        mediaRecorder = new MediaRecorder(stream);
+                        mediaRecorder.start();
+                        
+                        statusMessage.textContent = "I'm listening...";
+                        voiceButton.classList.add('recording');
+                        isRecording = true;
+                        
+                        mediaRecorder.addEventListener('dataavailable', event => {
+                            audioChunks.push(event.data);
+                        });
+                        
+                        mediaRecorder.addEventListener('stop', () => {
+                            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                            audioChunks = [];
+                            
+                            // Send to MovieBuddy AI
+                            sendToMovieBuddy(audioBlob);
+                            
+                            // Stop all tracks
+                            stream.getTracks().forEach(track => track.stop());
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error accessing microphone:', error);
+                        statusMessage.textContent = 'Error: Could not access microphone. Please check permissions.';
+                    });
+            }
+            
+            function stopRecording() {
+                if (mediaRecorder && isRecording) {
+                    mediaRecorder.stop();
+                    statusMessage.textContent = "Processing your request...";
+                    voiceButton.classList.remove('recording');
+                    isRecording = false;
+                }
+            }
+            
+            function sendToMovieBuddy(audioBlob) {
+                const formData = new FormData();
+                formData.append('audio_data', audioBlob, 'recording.wav');
+                formData.append('user_id', userId);
+                
+                fetch(API.MOVIEBUDDY, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show transcription
+                        if (data.transcript) {
+                            // Add user message to conversation
+                            addUserMessage(data.transcript);
+                        }
+                        
+                        // Show MovieBuddy response
+                        if (data.response) {
+                            // Add assistant message to conversation
+                            addAssistantMessage(data.response);
+                            statusMessage.textContent = "Ready for your next question!";
+                        }
+                        
+                        // Display recommendations if available
+                        if (data.recommendations && data.recommendations.length > 0) {
+                            displayRecommendations(data.recommendations);
+                        }
+                        
+                        // Handle conversation state
+                        if (data.waiting_for_follow_up) {
+                            followUpIndicator.style.display = 'block';
+                        } else {
+                            followUpIndicator.style.display = 'none';
+                        }
+                    } else {
+                        statusMessage.textContent = data.error || 'Error processing your request';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    statusMessage.textContent = 'Error connecting to server';
+                });
+            }
+            
+            function addUserMessage(message) {
+                const bubble = document.createElement('div');
+                bubble.className = 'conversation-bubble user-bubble';
+                bubble.innerHTML = `
+                    <div class="bubble-content">
+                        <p>${message}</p>
+                    </div>
+                    <div class="bubble-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                `;
+                conversation.appendChild(bubble);
+                
+                // Scroll to bottom
+                conversation.scrollTop = conversation.scrollHeight;
+            }
+            
+            function addAssistantMessage(message) {
+                const bubble = document.createElement('div');
+                bubble.className = 'conversation-bubble assistant-bubble';
+                bubble.innerHTML = `
+                    <div class="bubble-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="bubble-content">
+                        <p>${message}</p>
+                    </div>
+                `;
+                conversation.appendChild(bubble);
+                
+                // Scroll to bottom
+                conversation.scrollTop = conversation.scrollHeight;
+            }
+            
+            function displayRecommendations(movies) {
+                movieCards.innerHTML = '';
+                
+                movies.forEach(movie => {
+                    const card = document.createElement('div');
+                    card.className = 'movie-card';
+                    
+                    // Get image URL or use placeholder
+                    const imageUrl = movie.poster_path 
+                        ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                        : '/static/movies.webp';
+                    
+                    card.innerHTML = `
+                        <img src="${imageUrl}" alt="${movie.title}">
+                        <div class="movie-card-content">
+                            <div class="movie-card-title">${movie.title}</div>
+                            <div class="movie-card-year">${movie.year || 'Unknown'}</div>
+                            <div class="movie-card-rating">
+                                <i class="fas fa-star"></i>
+                                <span>${movie.vote_average || 'N/A'}</span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    movieCards.appendChild(card);
+                });
+                
+                movieRecommendations.style.display = 'block';
+            }
+            
+            function clearConversation() {
+                // Clear conversation UI
+                conversation.innerHTML = `
+                    <div class="conversation-bubble assistant-bubble">
+                        <div class="bubble-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="bubble-content">
+                            <p>Hey there! I'm MovieBuddy AI. What kind of movie are you in the mood for today?</p>
+                        </div>
+                    </div>
+                `;
+                
+                // Hide recommendations
+                movieRecommendations.style.display = 'none';
+                movieCards.innerHTML = '';
+                
+                // Reset status
+                statusMessage.textContent = "Hi! I'm MovieBuddy AI. Click the microphone button and tell me what kind of movie you're looking for.";
+                followUpIndicator.style.display = 'none';
+                
+                // Clear conversation on server
+                fetch('/api/clear_conversation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_id: userId })
+                })
+                .catch(error => {
+                    console.error('Error clearing conversation:', error);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
