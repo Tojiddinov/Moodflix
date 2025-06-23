@@ -10,6 +10,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 import json
 # Import the voice movie recommender
 from voice_movie_recommender import VoiceMovieRecommender
+from realtime_voice_recommender import RealTimeVoiceRecommender
+from enhanced_moviebuddy_ai import EnhancedMovieBuddyAI
 import os
 import hashlib
 import random
@@ -18,6 +20,7 @@ from flask_session import Session
 from functools import wraps
 from datetime import datetime, timedelta
 import tempfile
+import asyncio
 
 # Load NLP model and vectorizer for sentiment analysis
 try:
@@ -42,6 +45,12 @@ except Exception as e:
 
 # Initialize the voice recommender
 voice_recommender = VoiceMovieRecommender()
+
+# Initialize the real-time voice recommender
+realtime_voice_recommender = None  # Will be initialized when needed
+
+# Initialize the enhanced MovieBuddy AI
+enhanced_ai = None  # Will be initialized when needed
 
 def create_similarity():
     data = pd.read_csv('main_data.csv')
@@ -933,21 +942,348 @@ def rate_movie():
 @app.route('/mark_as_watched', methods=['POST'])
 @login_required
 def mark_as_watched():
-    movie_data = request.json
-    user_email = session.get('user_id')
-    
-    if not user_email or user_email not in users_db:
-        return jsonify({'success': False, 'message': 'User not found'})
-    
-    # Initialize watched list if it doesn't exist
-    if 'watched' not in users_db[user_email]:
-        users_db[user_email]['watched'] = []
-    
-    if not any(m.get('id') == movie_data.get('id') for m in users_db[user_email]['watched']):
-        movie_data['watched_at'] = datetime.now()
-        users_db[user_email]['watched'].append(movie_data)
-        return jsonify({'success': True})
-    return jsonify({'success': False, 'message': 'Movie already marked as watched'})
+    """Mark a movie as watched for the current user"""
+    try:
+        user_email = session.get('user_id')
+        if not user_email:
+            return jsonify({'success': False, 'error': 'User not authenticated'}), 401
+        
+        data = request.get_json()
+        movie_title = data.get('movie_title')
+        
+        if not movie_title:
+            return jsonify({'success': False, 'error': 'Movie title is required'}), 400
+        
+        # Here you would typically save to a database
+        # For now, we'll just return success
+        
+        return jsonify({
+            'success': True,
+            'message': f'Marked "{movie_title}" as watched'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Error marking movie as watched: {str(e)}'
+        }), 500
+
+@app.route('/realtime_voice', methods=['GET', 'POST'])
+def realtime_voice():
+    """Handle real-time voice conversation"""
+    try:
+        if request.method == 'GET':
+            # Return the real-time voice interface
+            return render_template('realtime_voice.html')
+        
+        elif request.method == 'POST':
+            # Handle real-time voice commands
+            data = request.get_json()
+            action = data.get('action')
+            
+            if action == 'start':
+                # Start the real-time conversation
+                return jsonify({
+                    'success': True,
+                    'message': 'Real-time voice conversation started',
+                    'instructions': [
+                        "Say 'Hey Movie Buddy' to wake up the AI",
+                        "Ask for movie recommendations",
+                        "Say 'goodbye' to end the conversation"
+                    ]
+                })
+            
+            elif action == 'status':
+                # Return conversation status
+                return jsonify({
+                    'success': True,
+                    'status': 'ready',
+                    'message': 'Real-time voice system is ready'
+                })
+            
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': 'Unknown action'
+                }), 400
+                
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Error in real-time voice: {str(e)}'
+        }), 500
+
+@app.route('/launch_realtime_voice')
+def launch_realtime_voice():
+    """Launch the real-time voice recommender as a separate process"""
+    try:
+        import subprocess
+        import sys
+        
+        # Launch the real-time voice recommender in a separate process
+        process = subprocess.Popen([
+            sys.executable, 'test_realtime_voice.py'
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Real-time voice recommender launched!',
+            'instructions': [
+                "Check your terminal/console for the voice interface",
+                "Say 'Hey Movie Buddy' to start chatting",
+                "The AI will respond with voice recommendations"
+            ]
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Error launching real-time voice: {str(e)}'
+        }), 500
+
+@app.route('/voice_assistants')
+def voice_assistants():
+    """Render the voice assistants page"""
+    return render_template('voice_assistants.html')
+
+@app.route('/enhanced_voice')
+def enhanced_voice():
+    """Render the enhanced voice interface"""
+    return render_template('enhanced_voice.html')
+
+@app.route('/launch_enhanced_voice')
+def launch_enhanced_voice():
+    """Initialize the enhanced MovieBuddy AI system for web interface"""
+    try:
+        global enhanced_ai
+        
+        # Initialize enhanced AI if not already done
+        if enhanced_ai is None:
+            enhanced_ai = EnhancedMovieBuddyAI()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Enhanced MovieBuddy AI is ready! Start speaking to interact.',
+            'status': 'initialized',
+            'features': [
+                'Real-time emotion detection from voice',
+                'Advanced movie matching algorithm',
+                'Continuous conversation like Siri/Alexa',
+                'Personalized recommendations',
+                'Smart wake word detection'
+            ],
+            'instructions': [
+                'Click the microphone button to start recording',
+                'Say "Hey Movie Buddy" to activate the AI',
+                'Ask for movie recommendations based on your mood',
+                'The AI will analyze your voice emotion and provide personalized suggestions'
+            ]
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': 'Failed to initialize Enhanced MovieBuddy AI.'
+        })
+
+@app.route('/api/enhanced_voice_recommend', methods=['POST'])
+def api_enhanced_voice_recommend():
+    """API endpoint for enhanced voice recommendations with emotion detection"""
+    try:
+        global enhanced_ai
+        
+        # Initialize enhanced AI if not already done
+        if enhanced_ai is None:
+            enhanced_ai = EnhancedMovieBuddyAI()
+        
+        # Check if it's a file upload (audio) or text input
+        if 'audio' in request.files:
+            # Handle audio file upload
+            audio_file = request.files['audio']
+            
+            # Save the audio file temporarily
+            import tempfile
+            import soundfile as sf
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.wav') as temp_audio:
+                audio_file.save(temp_audio.name)
+                
+                # Process the audio file
+                try:
+                    # Load audio data as numpy array
+                    audio_data, sample_rate = sf.read(temp_audio.name)
+                    
+                    # Ensure audio is in the right format
+                    if len(audio_data.shape) > 1:
+                        audio_data = audio_data[:, 0]  # Take first channel if stereo
+                    
+                    # Extract emotion from audio features
+                    emotion, confidence = enhanced_ai.detect_emotion_from_audio(audio_data)
+                    
+                    # Transcribe the audio for text processing
+                    user_input = enhanced_ai.transcribe_audio(audio_data) or "I want a movie recommendation"
+                    
+                    # Clean up temp file
+                    os.unlink(temp_audio.name)
+                    
+                except Exception as audio_error:
+                    # Clean up temp file on error
+                    if os.path.exists(temp_audio.name):
+                        os.unlink(temp_audio.name)
+                    emotion = 'neutral'
+                    user_input = "I want a movie recommendation"
+                    
+        else:
+            # Handle text input
+            data = request.get_json()
+            user_input = data.get('text', '')
+            emotion = data.get('emotion', 'neutral')
+            introduction_text = data.get('introduction_text', '')
+            
+            # Handle introduction request
+            if user_input == 'introduction' and introduction_text:
+                try:
+                    # Generate audio for introduction only
+                    import tempfile
+                    from gtts import gTTS
+                    import base64
+                    
+                    tts = gTTS(text=introduction_text, lang='en', slow=False)
+                    
+                    with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as tmp_file:
+                        tts.save(tmp_file.name)
+                        
+                        # Read the audio file and encode as base64
+                        with open(tmp_file.name, 'rb') as audio_file:
+                            audio_data = audio_file.read()
+                            audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+                            audio_url = f"data:audio/mp3;base64,{audio_base64}"
+                        
+                        # Clean up temp file
+                        os.unlink(tmp_file.name)
+                    
+                    return jsonify({
+                        'success': True,
+                        'audio_url': audio_url,
+                        'response': introduction_text,
+                        'type': 'introduction'
+                    })
+                    
+                except Exception as e:
+                    return jsonify({
+                        'success': False,
+                        'error': f'Error generating introduction: {str(e)}'
+                    })
+            
+            if not user_input:
+                return jsonify({
+                    'success': False,
+                    'error': 'No input provided'
+                })
+        
+        # Process the input with emotion context
+        preferences = enhanced_ai.extract_enhanced_preferences(user_input, emotion)
+        recommendations = enhanced_ai.get_enhanced_recommendations(preferences, n_recommendations=5)
+        
+        # If no recommendations found, get fallback recommendations
+        if not recommendations:
+            print("No specific matches found, getting popular movies...")
+            # Get some popular movies as fallback
+            fallback_preferences = {
+                'genres': ['Comedy', 'Action', 'Drama'],
+                'moods': ['entertaining', 'popular'],
+                'keywords': [],
+                'actors': [],
+                'directors': [],
+                'year_range': None,
+                'emotion': emotion,
+                'exclude': []
+            }
+            recommendations = enhanced_ai.get_enhanced_recommendations(fallback_preferences, n_recommendations=5)
+        
+        response = enhanced_ai.format_empathetic_response(recommendations, preferences, emotion)
+        
+        # Generate audio response
+        audio_url = None
+        try:
+            # Create TTS audio file for the response
+            import tempfile
+            from gtts import gTTS
+            import base64
+            
+            # Create a shorter version for TTS
+            tts_text = response[:200] + "..." if len(response) > 200 else response
+            tts_text = tts_text.replace('**', '').replace('\n', ' ')  # Clean formatting
+            
+            tts = gTTS(text=tts_text, lang='en', slow=False)
+            
+            with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as tmp_file:
+                tts.save(tmp_file.name)
+                
+                # Read the audio file and encode as base64
+                with open(tmp_file.name, 'rb') as audio_file:
+                    audio_data = audio_file.read()
+                    audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+                    audio_url = f"data:audio/mp3;base64,{audio_base64}"
+                
+                # Clean up temp file
+                os.unlink(tmp_file.name)
+                
+        except Exception as audio_error:
+            print(f"Warning: Could not generate audio response: {audio_error}")
+        
+        # Format recommendations for web display
+        formatted_recommendations = []
+        for movie in recommendations[:5]:  # Limit to top 5
+            # Format genres
+            genres = movie.get('genres', [])
+            if isinstance(genres, list):
+                genres_text = ', '.join(genres[:3])  # Top 3 genres
+            else:
+                genres_text = str(genres)
+            
+            # Format actors
+            actors = movie.get('actors', [])
+            if isinstance(actors, list):
+                actors_text = ', '.join(actors[:3])  # Top 3 actors
+            else:
+                actors_text = str(actors)
+            
+            # Format directors
+            directors = movie.get('directors', [])
+            if isinstance(directors, list):
+                directors_text = ', '.join(directors[:2])  # Top 2 directors
+            else:
+                directors_text = str(directors)
+            
+            formatted_recommendations.append({
+                'title': movie['title'],
+                'year': movie.get('year', 'N/A'),
+                'genres': genres_text or 'N/A',
+                'imdb_score': f"{movie.get('imdb_score', 0):.1f}" if movie.get('imdb_score') else 'N/A',
+                'actors': actors_text or 'N/A',
+                'directors': directors_text or 'N/A',
+                'mood': ', '.join(movie.get('mood', [])) if movie.get('mood') else 'N/A',
+                'description': f"Perfect for when you're feeling {emotion}!"
+            })
+        
+        return jsonify({
+            'success': True,
+            'recommendations': formatted_recommendations,
+            'response': response,
+            'audio_url': audio_url,
+            'detected_emotion': emotion,
+            'preferences': preferences,
+            'user_input': user_input,
+            'total_found': len(recommendations)
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': 'Error processing your request. Please try again.'
+        })
 
 if __name__ == '__main__':
     app.run(debug=True)

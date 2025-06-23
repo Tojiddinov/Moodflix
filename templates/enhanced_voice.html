@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced MovieBuddy AI - Moodflix</title>
+    <link rel="icon" href="/static/Untitled%20design%20(2).png" type="image/png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #e50914;
+            --accent-color: #667eea;
+            --text-light: #f8f9fa;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: var(--text-light);
+            overflow-x: hidden;
+        }
+        
+        .navbar {
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .ai-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .ai-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .ai-header h1 {
+            font-size: 3rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+        
+        .ai-controls {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .voice-interface {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .mic-button {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--primary-color), #ff8a00);
+            color: white;
+            font-size: 2.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(229, 9, 20, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .mic-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(229, 9, 20, 0.5);
+        }
+        
+        .mic-button.recording {
+            animation: pulse 1.5s infinite;
+            background: linear-gradient(135deg, #ff4757, #ff3838);
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 71, 87, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); }
+        }
+        
+        .text-input-area {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 20px;
+        }
+        
+        .text-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 50px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .text-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 20px rgba(229, 9, 20, 0.3);
+        }
+        
+        .text-input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .send-button {
+            background: linear-gradient(135deg, var(--accent-color), #764ba2);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .status-display {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .emotion-indicator {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin: 10px;
+        }
+        
+        .emotion-happy { background: linear-gradient(135deg, #00d4aa, #00b894); }
+        .emotion-sad { background: linear-gradient(135deg, #74b9ff, #0984e3); }
+        .emotion-excited { background: linear-gradient(135deg, #fd79a8, #e84393); }
+        .emotion-calm { background: linear-gradient(135deg, #55a3ff, #3742fa); }
+        .emotion-neutral { background: linear-gradient(135deg, #636e72, #2d3436); }
+        
+        .recommendations-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 30px;
+            margin-top: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .movie-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .movie-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-color: var(--primary-color);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .movie-card[onclick] {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .movie-card[onclick]:hover {
+            background: rgba(229, 9, 20, 0.1);
+            border-color: var(--primary-color);
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .ai-response {
+            background: linear-gradient(135deg, rgba(229, 9, 20, 0.1), rgba(102, 126, 234, 0.1));
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        @media (max-width: 768px) {
+            .ai-header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .mic-button {
+                width: 100px;
+                height: 100px;
+                font-size: 2rem;
+            }
+            
+            .ai-controls {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('home') }}">
+                <img src="/static/Untitled%20design%20(2).png" alt="Moodflix" height="40">
+                <span class="text-light fw-bold ms-2">MOODFLIX</span>
+            </a>
+            <a href="{{ url_for('voice_assistants') }}" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left"></i> Back to Voice Assistants
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="ai-container">
+        <!-- Header -->
+        <div class="ai-header">
+            <h1>🧠 Enhanced MovieBuddy AI</h1>
+            <p class="lead">Advanced voice assistant with real-time emotion detection</p>
+            <div class="status-display" id="statusDisplay">
+                <i class="fas fa-robot"></i> Click the button below to initialize the AI system
+            </div>
+        </div>
+
+        <!-- AI Controls -->
+        <div class="ai-controls">
+            <div class="voice-interface">
+                <!-- Initialize Button -->
+                <button class="btn btn-primary btn-lg" id="initializeBtn" onclick="initializeAI()">
+                    <i class="fas fa-play"></i> Initialize Enhanced AI
+                </button>
+                
+                <!-- Voice Interface (hidden initially) -->
+                <div id="voiceInterface" style="display: none;">
+                    <button class="mic-button" id="micButton" onclick="toggleRecording()">
+                        <i class="fas fa-microphone"></i>
+                    </button>
+                    <p class="text-center">Click once to start - like Alexa/Siri!</p>
+                    
+                    <!-- Text Input Alternative -->
+                    <div class="text-input-area">
+                        <input type="text" class="text-input" id="textInput" 
+                               placeholder="Type your movie request here... (e.g., 'I want something exciting')">
+                        <div class="text-center">
+                            <button class="btn send-button" onclick="sendTextMessage()">
+                                <i class="fas fa-paper-plane"></i> Send Message
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emotion & Response Display -->
+        <div id="responseContainer" style="display: none;">
+            <div class="status-display">
+                <h5>🎭 Detected Emotion</h5>
+                <div id="emotionDisplay"></div>
+            </div>
+            
+            <div class="ai-response" id="aiResponse"></div>
+        </div>
+
+        <!-- Recommendations Container -->
+        <div id="recommendationsContainer" style="display: none;" class="recommendations-container">
+            <h4><i class="fas fa-star"></i> Your Personalized Movie Recommendations</h4>
+            <div id="moviesList"></div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" style="display: none;" class="loading">
+            <div class="spinner"></div>
+            <span class="ms-3">Analyzing your voice and finding perfect movies...</span>
+        </div>
+    </div>
+
+    <script>
+        let isRecording = false;
+        let mediaRecorder;
+        let audioChunks = [];
+        let isInitialized = false;
+        let conversationActive = false;
+        let isFirstInteraction = true;
+        let silenceDetectionTimeout;
+        let hasSpokenRecently = false;
+
+        // Initialize the Enhanced AI system
+        async function initializeAI() {
+            const statusDisplay = document.getElementById('statusDisplay');
+            const initializeBtn = document.getElementById('initializeBtn');
+            const voiceInterface = document.getElementById('voiceInterface');
+            
+            try {
+                statusDisplay.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing Enhanced MovieBuddy AI...';
+                
+                const response = await fetch('/launch_enhanced_voice');
+                const data = await response.json();
+                
+                if (data.success) {
+                    statusDisplay.innerHTML = '<i class="fas fa-check-circle text-success"></i> MovieBuddy Ready! Click once for Alexa/Siri-style conversation.';
+                    initializeBtn.style.display = 'none';
+                    voiceInterface.style.display = 'block';
+                    isInitialized = true;
+                } else {
+                    statusDisplay.innerHTML = '<i class="fas fa-exclamation-circle text-danger"></i> Error: ' + data.message;
+                }
+            } catch (error) {
+                statusDisplay.innerHTML = '<i class="fas fa-exclamation-circle text-danger"></i> Error initializing AI system';
+                console.error('Error:', error);
+            }
+        }
+
+        // Start Alexa/Siri-style conversation - ONE CLICK, CONTINUOUS INTERACTION
+        async function toggleRecording() {
+            if (!isInitialized) {
+                alert('Please initialize the AI system first');
+                return;
+            }
+
+            const micButton = document.getElementById('micButton');
+            const micIcon = micButton.querySelector('i');
+            
+            if (!isRecording) {
+                // Start real-time continuous conversation like Alexa/Siri
+                await startAlexaStyleConversation();
+            } else {
+                // Manual stop if needed
+                stopRecording();
+            }
+        }
+
+        // Alexa/Siri-style conversation - TRUE ONE-CLICK INTERACTION
+        async function startAlexaStyleConversation() {
+            try {
+                const micButton = document.getElementById('micButton');
+                const micIcon = micButton.querySelector('i');
+                
+                if (isFirstInteraction) {
+                    // First interaction: Play MovieBuddy introduction with voice
+                    console.log('First interaction - playing full voice introduction');
+                    updateStatus('🤖 MovieBuddy is introducing itself...');
+                    
+                    // Reset button temporarily during introduction
+                    micButton.classList.remove('recording');
+                    micIcon.className = 'fas fa-microphone';
+                    isRecording = false;
+                    
+                    // Play the full introduction with voice
+                    await playIntroduction();
+                    
+                    // Wait for introduction to complete before listening
+                    await new Promise(resolve => setTimeout(resolve, 4000));
+                    
+                    // Now start recording after introduction
+                    micButton.classList.add('recording');
+                    micIcon.className = 'fas fa-stop';
+                    isRecording = true;
+                    
+                    updateStatus('🎤 Now listening... Please tell me what you want!');
+                    isFirstInteraction = false;
+                } else {
+                    // Subsequent interactions: Start listening immediately
+                    micButton.classList.add('recording');
+                    micIcon.className = 'fas fa-stop';
+                    isRecording = true;
+                    updateStatus('🎤 Listening... Speak now!');
+                }
+                
+                // Start listening
+                await startRealtimeListening();
+                
+                conversationActive = true;
+                
+            } catch (error) {
+                console.error('Error starting Alexa-style conversation:', error);
+                updateStatus('❌ Error starting conversation. Try again.');
+                resetMicButton();
+            }
+        }
+
+        // Quick intro display without delays
+        function displayQuickIntro(introText) {
+            const responseContainer = document.getElementById('responseContainer');
+            const aiResponse = document.getElementById('aiResponse');
+            
+            responseContainer.style.display = 'block';
+            aiResponse.innerHTML = `
+                <p><i class="fas fa-robot"></i> <strong>MovieBuddy:</strong> ${introText}</p>
+                <p><em>🎤 Listening now...</em></p>
+            `;
+        }
+
+        // Real-time listening like Alexa/Siri - with intelligent silence detection
+        async function startRealtimeListening() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                });
+                
+                // Better audio format detection
+                let mimeType = 'audio/webm;codecs=opus';
+                if (!MediaRecorder.isTypeSupported(mimeType)) {
+                    mimeType = 'audio/webm';
+                    if (!MediaRecorder.isTypeSupported(mimeType)) {
+                        mimeType = 'audio/mp4';
+                        if (!MediaRecorder.isTypeSupported(mimeType)) {
+                            mimeType = ''; // Use default
+                        }
+                    }
+                }
+                
+                mediaRecorder = new MediaRecorder(stream, mimeType ? {mimeType} : {});
+                
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+                
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: mimeType || 'audio/webm' });
+                    await sendAudioMessage(audioBlob);
+                    audioChunks = [];
+                    
+                    // After processing, ready for immediate next interaction
+                    setTimeout(() => {
+                        if (conversationActive) {
+                            updateStatus('🎤 Ready! Click to ask another question.');
+                            resetMicButton();
+                        }
+                    }, 500);
+                };
+                
+                // Start recording immediately
+                mediaRecorder.start();
+                
+                // Smart auto-stop: Listen for 15 seconds max, but stop intelligently
+                const maxRecordingTime = setTimeout(() => {
+                    if (isRecording) {
+                        updateStatus('⏰ Time limit reached. Processing...');
+                        stopRecording();
+                    }
+                }, 15000);
+                
+                // Optional: Add voice activity detection for even smarter stopping
+                // This would stop recording after 2 seconds of silence
+                
+            } catch (error) {
+                console.error('Error starting real-time listening:', error);
+                updateStatus('❌ Microphone error. Please check permissions.');
+                resetMicButton();
+            }
+        }
+
+        // Reset microphone button to ready state
+        function resetMicButton() {
+            const micButton = document.getElementById('micButton');
+            const micIcon = micButton.querySelector('i');
+            
+            micButton.classList.remove('recording');
+            micIcon.className = 'fas fa-microphone';
+            isRecording = false;
+            
+            // Add pulse animation to show it's ready
+            micButton.style.animation = 'pulse 2s infinite';
+            setTimeout(() => {
+                micButton.style.animation = '';
+            }, 6000);
+        }
+
+        // Play MovieBuddy introduction - with voice and auto-play
+        async function playIntroduction() {
+            const introMessages = [
+                "Hi! I'm MovieBuddy, your AI movie companion. What kind of movie are you in the mood for today?",
+                "Hello there! I'm MovieBuddy. Tell me what you're looking for and I'll find the perfect movie for you!",
+                "Hey! MovieBuddy here, ready to help you discover amazing movies. What's your movie mood right now?"
+            ];
+            
+            const randomIntro = introMessages[Math.floor(Math.random() * introMessages.length)];
+            
+            updateStatus('🤖 MovieBuddy introducing itself...');
+            
+            // Show introduction immediately
+            displayIntroduction(randomIntro);
+            
+            // Generate and auto-play audio introduction
+            try {
+                const response = await fetch('/api/enhanced_voice_recommend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: 'introduction',
+                        introduction_text: randomIntro
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.audio_url) {
+                    // Auto-play the introduction
+                    const audio = new Audio(data.audio_url);
+                    
+                    // Add introduction audio controls to UI
+                    const aiResponse = document.getElementById('aiResponse');
+                    aiResponse.innerHTML += `
+                        <div class="audio-response mt-3">
+                            <audio controls style="width: 100%; max-width: 400px;" id="introAudio">
+                                <source src="${data.audio_url}" type="audio/mp3">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                    `;
+                    
+                    // Auto-play immediately
+                    audio.play().then(() => {
+                        console.log('MovieBuddy introduction is playing');
+                        updateStatus('🎤 MovieBuddy is speaking... Listen carefully!');
+                        
+                        // After audio finishes, indicate ready for listening
+                        audio.onended = () => {
+                            updateStatus('🎤 MovieBuddy finished introducing. Ready to listen!');
+                        };
+                    }).catch(error => {
+                        console.log('Auto-play failed:', error);
+                        updateStatus('🔊 Click play to hear MovieBuddy speak!');
+                    });
+                } else {
+                    updateStatus('🎤 Tell me what kind of movie you want to watch!');
+                }
+                
+            } catch (error) {
+                console.log('Introduction audio not available, continuing with text');
+                updateStatus('🎤 Tell me what kind of movie you want to watch!');
+            }
+            
+            return Promise.resolve();
+        }
+
+        // Display introduction in UI
+        function displayIntroduction(introText) {
+            const responseContainer = document.getElementById('responseContainer');
+            const aiResponse = document.getElementById('aiResponse');
+            
+            responseContainer.style.display = 'block';
+            aiResponse.innerHTML = `
+                <div class="p-3" style="background: rgba(229, 9, 20, 0.1); border-left: 4px solid #e50914; border-radius: 8px;">
+                    <p><i class="fas fa-robot"></i> <strong>MovieBuddy:</strong> ${introText}</p>
+                    <p><em>🎤 Getting ready to listen to you...</em></p>
+                </div>
+            `;
+            
+            // Show that MovieBuddy is introducing itself
+            const emotionDisplay = document.getElementById('emotionDisplay');
+            if (emotionDisplay) {
+                emotionDisplay.innerHTML = `<span class="emotion-indicator emotion-neutral">FRIENDLY</span>`;
+            }
+        }
+
+        // Quick acknowledgment for subsequent interactions
+        async function playQuickAcknowledgment() {
+            const ackMessages = [
+                "Sure! What else would you like to know?",
+                "Great! Tell me more about what you want.",
+                "Perfect! What's your next movie question?"
+            ];
+            
+            const randomAck = ackMessages[Math.floor(Math.random() * ackMessages.length)];
+            
+            try {
+                const response = await fetch('/api/enhanced_voice_recommend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: 'introduction',
+                        introduction_text: randomAck
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.audio_url) {
+                    const audio = new Audio(data.audio_url);
+                    audio.play().catch(error => {
+                        console.log('Quick acknowledgment audio failed');
+                    });
+                }
+            } catch (error) {
+                console.log('Quick acknowledgment failed, continuing...');
+            }
+        }
+
+        // Stop recording
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            }
+            
+            const micButton = document.getElementById('micButton');
+            const micIcon = micButton.querySelector('i');
+            
+            isRecording = false;
+            micButton.classList.remove('recording');
+            micIcon.className = 'fas fa-microphone';
+            
+            updateStatus('✅ Processing your request...');
+        }
+
+        // Update status display
+        function updateStatus(message) {
+            const statusDisplay = document.getElementById('statusDisplay');
+            statusDisplay.innerHTML = `<i class="fas fa-robot"></i> ${message}`;
+        }
+
+        // Send audio message to Enhanced AI
+        async function sendAudioMessage(audioBlob) {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            
+            try {
+                loadingIndicator.style.display = 'block';
+                updateStatus('🧠 Processing your request...');
+                
+                const formData = new FormData();
+                formData.append('audio', audioBlob, 'recording.webm');
+                
+                const response = await fetch('/api/enhanced_voice_recommend', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                await displayResults(data);
+                
+                // After displaying results, automatically ready for next question
+                if (conversationActive) {
+                    // No need for separate function - the resetMicButton already handles this
+                    console.log('Conversation ready for next interaction');
+                }
+                
+            } catch (error) {
+                console.error('Error sending audio:', error);
+                updateStatus('❌ Error processing audio. Click microphone to try again.');
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        }
+
+        // Offer to continue conversation
+        function offerContinueConversation() {
+            const continueMessages = [
+                '🎤 Want more recommendations? Click to ask me anything else!',
+                '🎤 Need a different genre? Click the mic and tell me!',
+                '🎤 Ready for your next movie question! Click to continue.',
+                '🎤 Anything else I can help you find? Click to speak!'
+            ];
+            
+            const randomMessage = continueMessages[Math.floor(Math.random() * continueMessages.length)];
+            updateStatus(randomMessage);
+            
+            // Update button text to show it's ready for next question
+            const micButton = document.getElementById('micButton');
+            micButton.title = 'Ask another question';
+            
+            // Enhanced visual indicator that it's ready
+            micButton.style.animation = 'pulse 2s infinite';
+            micButton.style.borderColor = '#00d4aa';  // Green border to show ready
+            
+            // Show a friendly continue message in the response area
+            const aiResponse = document.getElementById('aiResponse');
+            if (aiResponse) {
+                aiResponse.innerHTML += `
+                    <div class="mt-3 p-3" style="background: rgba(0, 212, 170, 0.1); border-left: 4px solid #00d4aa; border-radius: 8px;">
+                        <p><i class="fas fa-comments"></i> <strong>MovieBuddy:</strong> ${randomMessage.replace('🎤 ', '')}</p>
+                        <p><em>I'm ready to help you find more amazing movies with voice recommendations!</em></p>
+                        <p><small>💡 I'll speak my recommendations aloud and you can click any movie to see details!</small></p>
+                    </div>
+                `;
+            }
+            
+            // Remove animation when clicked
+            micButton.addEventListener('click', function removeAnimation() {
+                micButton.style.animation = '';
+                micButton.style.borderColor = '';
+                micButton.removeEventListener('click', removeAnimation);
+            });
+        }
+
+        // Send text message to Enhanced AI
+        async function sendTextMessage() {
+            const textInput = document.getElementById('textInput');
+            const message = textInput.value.trim();
+            
+            if (!message) {
+                alert('Please enter a message');
+                return;
+            }
+            
+            if (!isInitialized) {
+                alert('Please initialize the AI system first');
+                return;
+            }
+            
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            
+            try {
+                loadingIndicator.style.display = 'block';
+                
+                const response = await fetch('/api/enhanced_voice_recommend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: message,
+                        emotion: 'neutral'
+                    })
+                });
+                
+                const data = await response.json();
+                displayResults(data);
+                textInput.value = '';
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Error processing message. Please try again.');
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        }
+
+        // Display AI results
+        function displayResults(data) {
+            const responseContainer = document.getElementById('responseContainer');
+            const recommendationsContainer = document.getElementById('recommendationsContainer');
+            const emotionDisplay = document.getElementById('emotionDisplay');
+            const aiResponse = document.getElementById('aiResponse');
+            const moviesList = document.getElementById('moviesList');
+            
+            if (data.success) {
+                // Show containers
+                responseContainer.style.display = 'block';
+                recommendationsContainer.style.display = 'block';
+                
+                // Display detected emotion
+                const emotion = data.detected_emotion || 'neutral';
+                emotionDisplay.innerHTML = `<span class="emotion-indicator emotion-${emotion}">${emotion.toUpperCase()}</span>`;
+                
+                // Display user input (transcription) for transparency
+                let responseHTML = '';
+                if (data.user_input && data.user_input !== 'I want a movie recommendation') {
+                    responseHTML += `<p><i class="fas fa-user"></i> <strong>You said:</strong> "${data.user_input}"</p>`;
+                }
+                
+                responseHTML += `<p><i class="fas fa-robot"></i> <strong>MovieBuddy:</strong> ${data.response || 'Here are some movie recommendations for you!'}</p>`;
+                
+                // Add audio playback if available
+                if (data.audio_url) {
+                    responseHTML += `
+                        <div class="audio-response mt-3">
+                            <audio controls style="width: 100%; max-width: 400px;" id="aiAudio">
+                                <source src="${data.audio_url}" type="audio/mp3">
+                                Your browser does not support the audio element.
+                            </audio>
+                            <button class="btn btn-sm btn-primary mt-2" onclick="playAudioResponse()">
+                                <i class="fas fa-play"></i> Play MovieBuddy's Response
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Auto-play MovieBuddy's response
+                    setTimeout(() => {
+                        playAudioResponse().then(() => {
+                            // After MovieBuddy finishes speaking, automatically offer to continue
+                            setTimeout(() => {
+                                offerContinueConversation();
+                            }, 1000);
+                        }).catch(error => {
+                            // If audio fails, still offer to continue
+                            setTimeout(() => {
+                                offerContinueConversation();
+                            }, 2000);
+                        });
+                    }, 500);
+                }
+                
+                aiResponse.innerHTML = responseHTML;
+                
+                // Display movie recommendations
+                if (data.recommendations && data.recommendations.length > 0) {
+                    let moviesHTML = '';
+                    data.recommendations.forEach(movie => {
+                        moviesHTML += `
+                            <div class="movie-card" onclick="goToMovieDetails('${movie.title}')" style="cursor: pointer;">
+                                <h5><i class="fas fa-film"></i> ${movie.title}</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Year:</strong> ${movie.year}</p>
+                                        <p><strong>Genres:</strong> ${movie.genres}</p>
+                                        <p><strong>IMDB Score:</strong> ${movie.imdb_score}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Directors:</strong> ${movie.directors}</p>
+                                        <p><strong>Mood:</strong> ${movie.mood}</p>
+                                        <p><em>${movie.description}</em></p>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <small class="text-muted"><i class="fas fa-mouse-pointer"></i> Click to view details</small>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    moviesList.innerHTML = moviesHTML;
+                } else {
+                    moviesList.innerHTML = '<p>No recommendations found. Try a different request!</p>';
+                }
+            } else {
+                responseContainer.style.display = 'block';
+                aiResponse.innerHTML = `<p class="text-danger"><i class="fas fa-exclamation-circle"></i> Error: ${data.message || data.error}</p>`;
+            }
+        }
+
+        // Play audio response function
+        function playAudioResponse() {
+            return new Promise((resolve, reject) => {
+                const audio = document.getElementById('aiAudio');
+                if (audio) {
+                    audio.play().then(() => {
+                        console.log('MovieBuddy is speaking...');
+                        updateStatus('🤖 MovieBuddy is speaking... Listen to the recommendations!');
+                        
+                        // Resolve when audio ends
+                        audio.onended = () => {
+                            console.log('MovieBuddy finished speaking');
+                            resolve();
+                        };
+                        
+                        // Handle audio errors
+                        audio.onerror = () => {
+                            reject(new Error('Audio playback failed'));
+                        };
+                        
+                    }).catch(error => {
+                        console.log('Audio auto-play failed:', error);
+                        updateStatus('🔊 Click the play button to hear MovieBuddy speak!');
+                        reject(error);
+                    });
+                } else {
+                    reject(new Error('No audio element found'));
+                }
+            });
+        }
+
+        // Function to navigate to movie details page
+        function goToMovieDetails(movieTitle) {
+            // Clean the movie title for URL
+            const cleanTitle = movieTitle.trim();
+            const movieDetailsUrl = `/movie_details?title=${encodeURIComponent(cleanTitle)}`;
+            
+            // Open in new tab or same window (you can change this behavior)
+            window.location.href = movieDetailsUrl;
+        }
+
+        // Enter key support for text input
+        document.addEventListener('DOMContentLoaded', function() {
+            const textInput = document.getElementById('textInput');
+            textInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendTextMessage();
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

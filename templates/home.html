@@ -102,6 +102,61 @@
             transform: translateY(-2px);
         }
         
+        /* Navigation Links */
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        
+        .nav-link {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            border: 1px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-link:hover {
+            color: white;
+            text-decoration: none;
+            background: linear-gradient(45deg, var(--primary-color), #ff8a00);
+            border-color: transparent;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(229,9,20,0.3);
+        }
+        
+        .nav-link i {
+            font-size: 1rem;
+        }
+        
+        /* Responsive for navigation */
+        @media (max-width: 768px) {
+            .nav-links {
+                gap: 1rem;
+            }
+            
+            .nav-link {
+                padding: 0.5rem 1rem;
+                font-size: 0.85rem;
+            }
+            
+            .auth-buttons {
+                gap: 8px;
+            }
+            
+            .auth-buttons a {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+        }
+        
         /* Hero section */
         .hero-section {
             position: relative;
@@ -193,111 +248,149 @@
             background: linear-gradient(90deg, var(--primary-color), transparent);
         }
         
-        /* Search styles */
-        .search-box {
-            position: relative;
-            max-width: 650px;
-            margin: 40px auto 50px;
-            transform: scale(0.98);
-            transition: transform 0.3s ease;
+        /* Compact Search Bar */
+        .compact-search {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 0 20px;
         }
         
-        .search-box:hover {
-            transform: scale(1);
+        .search-input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: rgba(0,0,0,0.6);
+            border-radius: 50px;
+            padding: 8px;
+            border: 2px solid rgba(255,255,255,0.15);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .search-input-container:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 20px rgba(229,9,20,0.3);
+            background: rgba(0,0,0,0.8);
         }
         
         #autoComplete {
-            border-radius: 50px;
-            padding: 18px 30px;
-            font-size: 1.2rem;
+            flex: 1;
             border: none;
-            background-color: rgba(20, 20, 20, 0.85);
-            color: var(--light-color);
-            width: 100%;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3), 0 0 0 2px rgba(229, 9, 20, 0.05);
-            backdrop-filter: blur(5px);
-        }
-        
-        #autoComplete:focus {
-            background-color: rgba(30, 30, 30, 0.9);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.4), 0 0 0 3px rgba(229, 9, 20, 0.2);
+            background: transparent !important;
+            color: white !important;
+            font-size: 1rem;
+            padding: 15px 20px;
             outline: none;
+            font-weight: 400;
+            background-image: none !important;
+            background-repeat: no-repeat !important;
         }
         
         #autoComplete::placeholder {
-            color: rgba(255,255,255,0.6);
+            color: rgba(255,255,255,0.5);
         }
         
-        .movie-button {
-            position: absolute;
-            right: 5px;
-            top: 5px;
-            background: linear-gradient(90deg, var(--primary-color), #ff4b2b);
+        /* Override autoComplete library styling */
+        #autoComplete::-webkit-input-placeholder {
+            color: rgba(255,255,255,0.5) !important;
+        }
+        
+        #autoComplete::-moz-placeholder {
+            color: rgba(255,255,255,0.5) !important;
+        }
+        
+        #autoComplete:-ms-input-placeholder {
+            color: rgba(255,255,255,0.5) !important;
+        }
+        
+        /* Remove any background icons from autoComplete library */
+        .autoComplete_wrapper > input {
+            background-image: none !important;
+            background: transparent !important;
+        }
+        
+        .search-submit {
+            background: linear-gradient(135deg, var(--primary-color), #ff8a00);
             color: white;
             border: none;
             border-radius: 50px;
-            padding: 13px 30px;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            width: 45px;
+            height: 45px;
             cursor: pointer;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            box-shadow: 0 3px 10px rgba(229,9,20,0.3);
         }
         
-        .movie-button:hover {
-            background: linear-gradient(90deg, #ff4b2b, var(--primary-color));
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px rgba(229, 9, 20, 0.3);
+        .search-submit:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(229,9,20,0.5);
         }
         
-        .movie-button i {
-            font-size: 1.1rem;
+        .search-submit i {
+            font-size: 1rem;
+        }
+        
+        /* Mood Section Container */
+        .mood-section-container {
+            max-width: 1200px;
+            margin: 40px auto 0;
+            padding: 0 20px;
+        }
+        
+        .mood-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .mood-header h3 {
+            font-size: 2rem;
             color: white;
-            margin-left: 5px;
-            display: inline-block;
-            text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+            margin-bottom: 10px;
+            font-weight: 700;
         }
         
-        .movie-button:disabled {
-            background: linear-gradient(90deg, #6c757d, #495057);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-            opacity: 0.7;
+        .mood-header p {
+            color: rgba(255,255,255,0.7);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        
+        /* Moods Grid - Ensuring Visibility */
+        .moods-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 12px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 0;
         }
         
         /* Mood buttons */
-        .moods {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 12px;
-            margin-top: 40px;
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
-            perspective: 800px;
-        }
+        /* Legacy moods selector removed - now using moods-grid */
         
         .mood-button {
-            background-color: rgba(30, 30, 30, 0.85);
+            background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.08));
+            border: 2px solid rgba(255,255,255,0.25);
             color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 12px 22px;
+            border-radius: 20px;
+            padding: 15px 20px;
+            font-size: 0.95rem;
             font-weight: 500;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            font-size: 1rem;
+            backdrop-filter: blur(15px);
             position: relative;
             overflow: hidden;
-            backdrop-filter: blur(5px);
-            transform-style: preserve-3d;
-            backface-visibility: hidden;
+            text-align: center;
+            min-height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            width: 100%;
         }
         
         .mood-button::before {
@@ -307,21 +400,24 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            transform: translateX(-100%);
-            transition: 0.5s;
-            z-index: 1;
+            background: linear-gradient(45deg, var(--primary-color), #ff8a00);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
         }
         
         .mood-button:hover::before {
-            transform: translateX(100%);
+            opacity: 0.85;
         }
         
         .mood-button:hover {
-            background-color: var(--primary-color);
-            transform: translateY(-5px) rotateX(10deg);
-            box-shadow: 0 15px 25px rgba(0,0,0,0.3), 0 0 15px rgba(229, 9, 20, 0.3);
-            letter-spacing: 0.5px;
+            transform: translateY(-3px) scale(1.03);
+            border-color: rgba(255,255,255,0.5);
+            box-shadow: 0 8px 25px rgba(229, 9, 20, 0.4), 0 0 25px rgba(255,255,255,0.15);
+        }
+        
+        .mood-button:active {
+            transform: translateY(-1px) scale(1.01);
         }
         
         /* Trending section */
@@ -1203,7 +1299,8 @@
                 padding: 10px 25px;
             }
             
-            .moods {
+            .moods-grid {
+                grid-template-columns: repeat(6, 1fr);
                 gap: 10px;
             }
             
@@ -1282,9 +1379,14 @@
                 width: 70px;
             }
             
-            .search-box {
+            .compact-search {
                 max-width: 100%;
-                margin: 30px auto 40px;
+                margin: 25px auto;
+                padding: 0 15px;
+            }
+            
+            .search-input-container {
+                padding: 7px;
             }
             
             #autoComplete {
@@ -1292,18 +1394,20 @@
                 font-size: 1rem;
             }
             
-            .movie-button {
-                padding: 10px 20px;
-                font-size: 0.9rem;
-            }
-            
-            .movie-button i {
-                font-size: 1rem;
+            .search-submit {
+                width: 42px;
+                height: 42px;
             }
             
             .mood-button {
-                padding: 8px 16px;
+                padding: 12px 16px;
                 font-size: 0.9rem;
+                min-height: 50px;
+            }
+            
+            .moods-grid {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 8px;
             }
             
             .trending-section,
@@ -1395,9 +1499,46 @@
                 top: -10px;
             }
             
-            /* Better search and button handling */
-            .search-box {
-                margin: 20px 15px 30px;
+            /* Compact search for mobile */
+            .compact-search {
+                margin: 20px auto;
+                max-width: 100%;
+                padding: 0 15px;
+            }
+            
+            .search-input-container {
+                padding: 6px;
+            }
+            
+            #autoComplete {
+                padding: 12px 15px;
+                font-size: 0.9rem;
+            }
+            
+            .search-submit {
+                width: 40px;
+                height: 40px;
+            }
+            
+            /* Mood section mobile optimization */
+            .mood-section-container {
+                margin: 30px auto 0;
+                padding: 0 15px;
+            }
+            
+            .mood-header h3 {
+                font-size: 1.6rem;
+                margin-bottom: 8px;
+            }
+            
+            .mood-header p {
+                font-size: 1rem;
+            }
+            
+            .moods-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
+                padding: 15px 0;
             }
             
             #autoComplete {
@@ -1609,6 +1750,8 @@
                 scroll-behavior: smooth;
             }
         }
+        
+
     </style>
     <script>
         const suggestions = {{ suggestions | tojson }};
@@ -1621,14 +1764,19 @@
                 <img src="/static/Untitled%20design%20(2).png" alt="Moodflix Logo">
                 <h1>MOODFLIX</h1>
             </div>
-            <div class="auth-buttons">
-                {% if 'user_id' not in session %}
-                    <a href="{{ url_for('auth') }}" class="btn btn-outline-light">Login</a>
-                    <a href="{{ url_for('auth') }}?tab=register" class="btn btn-primary">Sign Up</a>
-                {% else %}
-                    <a href="{{ url_for('profile') }}" class="btn btn-outline-light">My Profile</a>
-                    <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
-                {% endif %}
+            <div class="nav-links">
+                <a href="{{ url_for('voice_assistants') }}" class="nav-link">
+                    <i class="fas fa-microphone"></i> Voice AI
+                </a>
+                <div class="auth-buttons">
+                    {% if 'user_id' not in session %}
+                        <a href="{{ url_for('auth') }}" class="btn btn-outline-light">Login</a>
+                        <a href="{{ url_for('auth') }}?tab=register" class="btn btn-primary">Sign Up</a>
+                    {% else %}
+                        <a href="{{ url_for('profile') }}" class="btn btn-outline-light">My Profile</a>
+                        <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </header>
@@ -1638,50 +1786,42 @@
         <div class="hero-backdrop"></div>
         <div class="mood-container fade-in">
             <h1>I want to feel<span class="ellipsis">...</span></h1>
-            <form id="movie-search-form" action="/search_movie" method="POST" onsubmit="console.log('Form submitted');">
-                <div class="search-box">
-                    <div class="input-group">
-                        <input type="text" name="title" class="form-control movie" id="autoComplete" autocomplete="off" placeholder="Enter the Movie Name" value="{{ search_query }}" required>
-                        <div class="input-group-append">
-                            <button type="submit" class="btn btn-primary" id="search-button">
-                                <i class="fas fa-search"></i> Search
-                            </button>
-                        </div>
+            
+            <!-- Compact Search Bar -->
+            <div class="compact-search">
+                <form id="movie-search-form" action="/search_movie" method="POST" onsubmit="console.log('Form submitted');">
+                    <div class="search-input-container">
+                        <input 
+                            type="text" 
+                            name="title" 
+                            id="autoComplete" 
+                            autocomplete="off" 
+                            placeholder="Search for a specific movie..." 
+                            value="{{ search_query }}" 
+                            required
+                        >
+                        <button type="submit" class="search-submit" id="search-button">
+                            <i class="fas fa-search"></i>
+                        </button>
                     </div>
+                </form>
+            </div>
+
+            <!-- Mood Section with Clear Visibility -->
+            <div class="mood-section-container">
+                <div class="mood-header">
+                    <h3>🎭 Choose Your Mood</h3>
+                    <p>Click any mood below to discover movies that match your feelings</p>
                 </div>
-                <div class="invalid-feedback" id="search-error">Please enter a valid movie name.</div>
                 
-                <!-- Voice Recommendation Section -->
-                <div class="voice-recommendation-section">
-                    <div class="card">
-                        <div class="card-body">
-                            <h3 class="card-title text-center mb-4">Try Voice Recommendations</h3>
-                            <p class="text-center text-muted">Tell us what kind of movie you want to watch - we'll analyze your preferences and mood!</p>
-                            
-                            <div class="text-center mb-4">
-                                <button id="startRecording" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-microphone"></i> Start Recording
-                                </button>
-                                <button id="stopRecording" class="btn btn-danger btn-lg d-none">
-                                    <i class="fas fa-stop"></i> Stop Recording
-                                </button>
-                            </div>
-                            
-                            <div id="recordingStatus" class="text-center mb-3"></div>
-                            
-                            <div id="voiceResult" class="d-none">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <h5 class="card-title">We heard you say:</h5>
-                                        <p id="transcriptText" class="card-text"></p>
-                                        <div id="recommendationResponse" class="mt-3"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="moods-grid">
+                    {% for mood in ["Date Night Vibe ❤️", "Joy 🌟", "Wonder ✨", "Melancholy 🌧️", "Spontaneous 🎉", "Adventurous 🏞️", "Excited 🔥", "Romantic 💕", "Inspired 💡", "Relaxed 🛀", "Quirky 🤪", "Triumphant 🏆", "Energetic ⚡", "Serene 🌿", "Mystical 🔮", "Playful 🎭", "Grateful 🙏", "Motivated 🚀", "Brave 🦁", "Chilled ❄️", "Empowered 💪", "Curious 🕵️", "Cheerful 😄", "Silly 🤡", "Confident 😎", "Focused 🎯", "Free 🕊️", "Peaceful ☮️", "Exciting 🎢"] %}
+                        <button class="mood-button mood-animate" data-delay="{{ loop.index * 50 }}">{{ mood }}</button>
+                    {% endfor %}
                 </div>
-            </form>
+            </div>
+
+            <!-- Loading and Results -->
             <div id="loader" style="display:none;">
                 <div class="spinner-border text-primary" role="status">
                     <span class="sr-only">Loading...</span>
@@ -1692,11 +1832,6 @@
                 <h3>Please check the spelling or try with another movie.</h3>
             </div>
             <div class="results" style="display:none;"></div>
-            <div class="moods">
-                {% for mood in ["Date Night Vibe ❤️", "Joy 🌟", "Wonder ✨", "Melancholy 🌧️", "Spontaneous 🎉", "Adventurous 🏞️", "Excited 🔥", "Romantic 💕", "Inspired 💡", "Relaxed 🛀", "Quirky 🤪", "Triumphant 🏆", "Energetic ⚡", "Serene 🌿", "Mystical 🔮", "Playful 🎭", "Grateful 🙏", "Motivated 🚀", "Brave 🦁", "Chilled ❄️", "Empowered 💪", "Curious 🕵️", "Cheerful 😄", "Silly 🤡", "Confident 😎", "Focused 🎯", "Free 🕊️", "Peaceful ☮️", "Exciting 🎢"] %}
-                    <button class="mood-button mood-animate" data-delay="{{ loop.index * 50 }}">{{ mood }}</button>
-                {% endfor %}
-            </div>
         </div>
     </section>
 
@@ -1878,6 +2013,12 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='recommend.js') }}"></script>
     <script>
+        // Search movie by clicking suggestion tags
+        function searchMovie(movieTitle) {
+            document.getElementById('autoComplete').value = movieTitle;
+            document.getElementById('movie-search-form').submit();
+        }
+
         // Auto-search if search query is provided
         $(document).ready(function() {
             console.log("Document ready");
@@ -1894,9 +2035,9 @@
             // Enable/disable search button based on input
             $('#autoComplete').on('input', function() {
                 if($(this).val().trim() === "") {
-                    $('.movie-button').attr('disabled', true);
+                    $('.search-submit').attr('disabled', true);
                 } else {
-                    $('.movie-button').attr('disabled', false);
+                    $('.search-submit').attr('disabled', false);
                 }
             });
             
@@ -1915,7 +2056,7 @@
             });
             
             // Handle mood button clicks
-            $('.moods .mood-button').on('click', function(e) {
+            $('.moods-grid .mood-button').on('click', function(e) {
                 e.preventDefault();
                 const mood = $(this).text().trim();
                 console.log("Mood selected: " + mood);
@@ -1973,157 +2114,6 @@
         });
     </script>
 
-    <!-- Voice Recognition JavaScript -->
-    <script>
-        let mediaRecorder;
-        let audioChunks = [];
-        let isRecording = false;
 
-        const startRecordingBtn = document.getElementById('startRecording');
-        const stopRecordingBtn = document.getElementById('stopRecording');
-        const recordingStatus = document.getElementById('recordingStatus');
-        const voiceResult = document.getElementById('voiceResult');
-        const transcriptText = document.getElementById('transcriptText');
-        const recommendationResponse = document.getElementById('recommendationResponse');
-
-        startRecordingBtn.addEventListener('click', async () => {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                
-                mediaRecorder.ondataavailable = (event) => {
-                    audioChunks.push(event.data);
-                };
-                
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                    sendAudioToServer(audioBlob);
-                    audioChunks = [];
-                };
-                
-                // Start recording
-                mediaRecorder.start();
-                isRecording = true;
-                
-                // Update UI
-                startRecordingBtn.classList.add('d-none');
-                stopRecordingBtn.classList.remove('d-none');
-                recordingStatus.textContent = "MovieBuddyAI is listening...";
-                recordingStatus.classList.add('text-primary');
-                recordingStatus.classList.remove('text-danger');
-                
-            } catch (err) {
-                console.error('Error accessing microphone:', err);
-                recordingStatus.textContent = 'Error: Could not access microphone. Please check your permissions.';
-                recordingStatus.classList.add('text-danger');
-            }
-        });
-
-        stopRecordingBtn.addEventListener('click', () => {
-            if (isRecording) {
-                mediaRecorder.stop();
-                isRecording = false;
-                
-                // Update UI
-                startRecordingBtn.classList.remove('d-none');
-                stopRecordingBtn.classList.add('d-none');
-                recordingStatus.textContent = 'Processing your request...';
-                recordingStatus.classList.remove('text-danger');
-                
-                // Stop all audio tracks
-                mediaRecorder.stream.getTracks().forEach(track => track.stop());
-            }
-        });
-
-        function sendAudioToServer(audioBlob) {
-            const formData = new FormData();
-            formData.append('audio_data', audioBlob, 'recording.wav');
-            
-            recordingStatus.textContent = 'Processing your request...';
-            
-            fetch('/voice_recommend', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Show the transcript and response
-                    voiceResult.classList.remove('d-none');
-                    transcriptText.textContent = data.transcript;
-                    
-                    // Format and display recommendations
-                    let recommendationsHtml = '<h5>MovieBuddyAI suggests:</h5>';
-                    data.recommendations.forEach((movie, index) => {
-                        recommendationsHtml += `
-                            <div class="movie-recommendation mb-3">
-                                <h6>${index + 1}. ${movie.title} (${movie.year})</h6>
-                                <p class="mb-1"><small class="text-muted">Genre: ${movie.genre}</small></p>
-                                <p class="movie-plot">${movie.plot.substring(0, 150)}...</p>
-                            </div>
-                        `;
-                    });
-                    
-                    // Add follow-up options
-                    recommendationsHtml += `
-                        <div class="follow-up-options mt-4">
-                            <h6>What would you like to do next?</h6>
-                            <div class="btn-group-vertical w-100">
-                                <button class="btn btn-outline-primary mb-2" onclick="getMovieDetails()">
-                                    Get more details about these movies
-                                </button>
-                                <button class="btn btn-outline-primary mb-2" onclick="getMoreRecommendations()">
-                                    See more recommendations
-                                </button>
-                                <button class="btn btn-outline-primary" onclick="startNewRecommendation()">
-                                    Try a different type of movie
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    
-                    recommendationResponse.innerHTML = recommendationsHtml;
-                    
-                    // Update status
-                    recordingStatus.textContent = 'Recommendations ready!';
-                    recordingStatus.classList.add('text-success');
-                } else {
-                    // Show error
-                    recordingStatus.textContent = 'Error: ' + (data.error || "Unknown error");
-                    recordingStatus.classList.add('text-danger');
-                    voiceResult.classList.add('d-none');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                recordingStatus.textContent = 'Error processing your request. Please try again.';
-                recordingStatus.classList.add('text-danger');
-            });
-        }
-
-        function getMovieDetails() {
-            // Implement movie details functionality
-            recordingStatus.textContent = "Please say which movie you'd like to know more about.";
-            startRecordingBtn.click();
-        }
-
-        function getMoreRecommendations() {
-            // Implement more recommendations functionality
-            recordingStatus.textContent = "I'll find more movies like these for you.";
-            startRecordingBtn.click();
-        }
-
-        function startNewRecommendation() {
-            // Clear previous results
-            voiceResult.classList.add('d-none');
-            transcriptText.textContent = '';
-            recommendationResponse.innerHTML = '';
-            recordingStatus.textContent = "Ready for your new movie preferences!";
-            recordingStatus.classList.remove('text-danger', 'text-success');
-            
-            // Start new recording
-            startRecordingBtn.click();
-        }
-    </script>
 </body>
 </html>
